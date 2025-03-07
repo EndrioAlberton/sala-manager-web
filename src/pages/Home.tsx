@@ -25,20 +25,38 @@ export function Home() {
       
       if (currentTab === 0) {
         // Busca salas ocupadas
-        data = await classroomService.searchByFilters({
-          searchTerm,
-          maxStudents: '',
-          hasProjector: false
-        });
-        data = data.filter(classroom => classroom.isOccupied);
+        data = await classroomService.findAll();
+        data = data.filter(classroom => classroom.isOccupied && (
+          !searchTerm || 
+          classroom.roomNumber.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+          classroom.currentTeacher?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          classroom.currentSubject?.toLowerCase().includes(searchTerm.toLowerCase())
+        ));
       } else {
         // Busca salas disponíveis
-        data = await classroomService.searchByFilters({
-          searchTerm,
-          maxStudents,
-          hasProjector
+        data = await classroomService.findAll();
+        
+        data = data.filter(classroom => {
+          // Primeiro verifica se está disponível
+          if (classroom.isOccupied) return false;
+
+          // Filtro de busca por número da sala
+          if (searchTerm && !classroom.roomNumber.toString().toLowerCase().includes(searchTerm.toLowerCase())) {
+            return false;
+          }
+
+          // Filtro de capacidade mínima
+          if (maxStudents && classroom.maxStudents < maxStudents) {
+            return false;
+          }
+
+          // Filtro de projetor 
+          if (hasProjector && !(classroom as any).hasProjector) {
+            return false;
+          }
+
+          return true;
         });
-        data = data.filter(classroom => !classroom.isOccupied);
       }
 
       setClassrooms(data);

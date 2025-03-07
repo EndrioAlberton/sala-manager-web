@@ -1,63 +1,65 @@
 import axios from 'axios';
 import { ClassRoom } from '../types/ClassRoom';
 
+const API_BASE_URL = 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: API_BASE_URL,
 });
 
 export interface SearchFilters {
   searchTerm: string;
   maxStudents: number | '';
   hasProjector: boolean;
+  isOccupied?: boolean;
 }
 
 export const classroomService = {
-  searchByFilters: async (filters: SearchFilters): Promise<ClassRoom[]> => {
-    try {
-      let results: ClassRoom[] = [];
+  findAll: async (): Promise<ClassRoom[]> => {
+    const response = await api.get('/classrooms');
+    return response.data;
+  },
 
-      // Se houver termo de busca, tenta buscar por número da sala primeiro
-      if (filters.searchTerm) {
-        // Remove a palavra "sala" do termo de busca
-        const searchTerm = filters.searchTerm.replace(/sala\s*/i, '').trim();
-        
-        if (searchTerm) {
-          try {
-            const roomResults = await classroomService.searchByRoomNumber(searchTerm);
-            results = roomResults;
-            console.log('Room search results:', roomResults);
-          } catch (error) {
-            console.log('No results found by room number');
-          }
+  searchByFilters: async (filters: SearchFilters): Promise<ClassRoom[]> => {
+    const response = await api.get('/classrooms');
+    const classrooms: ClassRoom[] = response.data;
+
+    return classrooms.filter(classroom => {
+      // Filtro por ocupação
+      if (filters.isOccupied !== undefined) {
+        if (filters.isOccupied !== classroom.isOccupied) {
+          return false;
         }
       }
 
-      // Se houver filtros adicionais, filtra os resultados
-      if (filters.maxStudents !== '' || filters.hasProjector) {
-        results = results.filter(classroom => {
-          const matchesMaxStudents = filters.maxStudents === '' || 
-            classroom.maxStudents >= filters.maxStudents;
-          const matchesProjector = !filters.hasProjector || 
-            (classroom.projectors !== undefined && classroom.projectors > 0);
-          return matchesMaxStudents && matchesProjector;
-        });
+      // Filtro por termo de busca (número da sala, professor ou disciplina)
+      if (filters.searchTerm) {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const matchesRoom = classroom.roomNumber.toString().toLowerCase().includes(searchTerm);
+        const matchesTeacher = classroom.currentTeacher?.toLowerCase().includes(searchTerm);
+        const matchesSubject = classroom.currentSubject?.toLowerCase().includes(searchTerm);
+        
+        if (!matchesRoom && !matchesTeacher && !matchesSubject) {
+          return false;
+        }
       }
 
-      console.log('Final results:', results);
-      return results;
-    } catch (error) {
-      console.error('Search error:', error);
-      throw error;
-    }
+      // Filtro por capacidade mínima
+      if (filters.maxStudents && classroom.maxStudents < filters.maxStudents) {
+        return false;
+      }
+
+      // Filtro por projetor - corrigido
+      if (filters.hasProjector && classroom.projectors === 0) {
+        return false;
+      }
+
+      return true;
+    });
   },
 
   searchByRoomNumber: async (roomNumber: string): Promise<ClassRoom[]> => {
     const response = await api.get(`/classrooms/search?roomNumber=${roomNumber}`);
-    return response.data;
-  },
-
-  findAll: async (): Promise<ClassRoom[]> => {
-    const response = await api.get('/classrooms');
     return response.data;
   },
 
