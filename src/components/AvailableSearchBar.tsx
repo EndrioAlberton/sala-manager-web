@@ -20,7 +20,7 @@ export function AvailableSearchBar({
   onSearch
 }: AvailableSearchBarProps) {
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 3, mx: 0 }}>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} md={4}>
           <TextField
@@ -52,7 +52,11 @@ export function AvailableSearchBar({
           />
         </Grid>
         <Grid item xs={12} md={1}>
-          <Button variant="contained" onClick={onSearch} fullWidth>
+          <Button 
+            variant="contained" 
+            onClick={onSearch} 
+            fullWidth
+          >
             Buscar
           </Button>
         </Grid>

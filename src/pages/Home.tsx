@@ -70,50 +70,67 @@ export function Home() {
   }, [currentTab]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center">
+    <Container 
+      maxWidth="lg" 
+      sx={{ 
+        p: 3,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        gutterBottom 
+        align="center"
+        sx={{
+          fontSize: { xs: '1.5rem', sm: '2.125rem' },
+          mb: 3,
+          width: '100%'
+        }}
+      >
         Sistema de Gerenciamento de Salas
       </Typography>
 
-      <NavigationTabs currentTab={currentTab} onTabChange={setCurrentTab} />
+      <Box sx={{ width: '100%' }}>
+        <NavigationTabs currentTab={currentTab} onTabChange={setCurrentTab} />
 
-      {currentTab === 0 ? (
-        <OccupiedSearchBar
-          searchTerm={searchTerm}
-          onSearchTermChange={setSearchTerm}
-          onSearch={handleSearch}
-        />
-      ) : (
-        <AvailableSearchBar
-          searchTerm={searchTerm}
-          maxStudents={maxStudents}
-          hasProjector={hasProjector}
-          onSearchTermChange={setSearchTerm}
-          onMaxStudentsChange={setMaxStudents}
-          onHasProjectorChange={setHasProjector}
-          onSearch={handleSearch}
-        />
-      )}
+        {currentTab === 0 ? (
+          <OccupiedSearchBar
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            onSearch={handleSearch}
+          />
+        ) : (
+          <AvailableSearchBar
+            searchTerm={searchTerm}
+            maxStudents={maxStudents}
+            hasProjector={hasProjector}
+            onSearchTermChange={setSearchTerm}
+            onMaxStudentsChange={setMaxStudents}
+            onHasProjectorChange={setHasProjector}
+            onSearch={handleSearch}
+          />
+        )}
 
-      {error && (
-        <Typography color="error" align="center" gutterBottom>
-          {error}
-        </Typography>
-      )}
+        {error && (
+          <Typography color="error" align="center" gutterBottom sx={{ width: '100%' }}>
+            {error}
+          </Typography>
+        )}
 
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Grid container spacing={3}>
+        <Grid 
+          container 
+          spacing={3}
+        >
           {classrooms.map((classroom) => (
-            <Grid item xs={12} sm={6} md={4} key={classroom.id}>
+            <Grid item xs={12} sm={6} md={4}>
               <ClassroomCard classroom={classroom} />
             </Grid>
           ))}
         </Grid>
-      )}
+      </Box>
     </Container>
   );
 } 

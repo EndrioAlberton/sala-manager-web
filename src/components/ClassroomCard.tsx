@@ -7,8 +7,23 @@ interface ClassroomCardProps {
 
 export function ClassroomCard({ classroom }: ClassroomCardProps) {
   return (
-    <Card>
-      <CardContent>
+    <Card 
+      sx={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        maxWidth: '100%',
+        width: '100%',
+        mx: 'auto'
+      }}
+    >
+      <CardContent 
+        sx={{ 
+          flexGrow: 1, 
+          p: { xs: 1.5, sm: 2 },
+          '&:last-child': { pb: 2 }
+        }}
+      >
         <Typography variant="h6" gutterBottom>
           Sala {classroom.roomNumber}
         </Typography>
