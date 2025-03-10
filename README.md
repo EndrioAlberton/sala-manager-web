@@ -1,54 +1,48 @@
-# React + TypeScript + Vite
+# 🏫 Sistema de Gerenciamento de Salas
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Uma aplicação web moderna para gerenciar salas de aula, desenvolvida com React, TypeScript e Material-UI.
 
-Currently, two official plugins are available:
+## ✨ Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 📋 Visualização
+- Cards com informações detalhadas das salas
+- Separação entre salas ocupadas e disponíveis
+- Status visual de ocupação
 
-## Expanding the ESLint configuration
+### 🛠️ Gerenciamento
+- Adicionar novas salas
+- Editar salas existentes (não ocupadas)
+- Deletar salas (não ocupadas)
+- Validação de dados com Zod
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🔍 Busca e Filtros
+- Busca por número, professor ou disciplina
+- Filtro por capacidade de alunos
+- Filtro por disponibilidade de projetor
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## 🚀 Tecnologias
+
+- React + TypeScript
+- Material-UI
+- React Hook Form
+- Zod
+- Axios
+
+## 🛠️ Instalação
+
+```bash
+# Clone o repositório
+git clone [URL_DO_REPOSITÓRIO]
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Acesse: `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔌 API
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+A aplicação se conecta com a API em `http://localhost:3000`
