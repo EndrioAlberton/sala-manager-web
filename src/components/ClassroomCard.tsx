@@ -1,16 +1,22 @@
-import { Card, CardContent, Typography, Box, Chip, IconButton, Tooltip } from '@mui/material';
+import { Card, CardContent, Typography, Box, IconButton, Tooltip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import { ClassRoom } from '../types/ClassRoom';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface ClassroomCardProps {
   classroom: ClassRoom;
   onEdit: (classroom: ClassRoom) => void;
   onDelete: (classroom: ClassRoom) => void;
+  onOccupy: (id: number, teacher: string, subject: string) => Promise<void>;
+  onVacate: (id: number) => Promise<void>;
 }
 
-export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProps) {
+export function ClassroomCard({ classroom, onEdit, onDelete, onOccupy, onVacate }: ClassroomCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleDelete = () => {
     if (classroom.isOccupied) {
       alert('Não é possível deletar uma sala que está ocupada.');
@@ -30,6 +36,36 @@ export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProp
     onEdit(classroom);
   };
 
+  const handleOccupy = async () => {
+    const teacher = prompt('Digite o nome do professor:');
+    if (!teacher) return;
+
+    const subject = prompt('Digite o nome da disciplina:');
+    if (!subject) return;
+
+    setIsLoading(true);
+    try {
+      await onOccupy(classroom.id, teacher, subject);
+    } catch (error) {
+      alert('Erro ao ocupar sala. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVacate = async () => {
+    if (!window.confirm('Tem certeza que deseja desocupar esta sala?')) return;
+
+    setIsLoading(true);
+    try {
+      await onVacate(classroom.id);
+    } catch (error) {
+      alert('Erro ao desocupar sala. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card 
       sx={{ 
@@ -38,7 +74,10 @@ export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProp
         flexDirection: 'column',
         maxWidth: '100%',
         width: '100%',
-        mx: 'auto'
+        mx: 'auto',
+        border: 2,
+        borderColor: classroom.isOccupied ? 'error.main' : 'success.main',
+        transition: 'border-color 0.3s ease'
       }}
     >
       <CardContent 
@@ -58,7 +97,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProp
                 <IconButton 
                   size="small" 
                   onClick={handleEdit}
-                  disabled={classroom.isOccupied}
+                  disabled={classroom.isOccupied || isLoading}
                   sx={{ mr: 1 }}
                 >
                   <EditIcon />
@@ -70,7 +109,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProp
                 <IconButton 
                   size="small" 
                   onClick={handleDelete}
-                  disabled={classroom.isOccupied}
+                  disabled={classroom.isOccupied || isLoading}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -119,11 +158,16 @@ export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProp
         )}
 
         <Box sx={{ mt: 2 }}>
-          <Chip 
-            label={classroom.isOccupied ? 'Ocupada' : 'Disponível'} 
-            color={classroom.isOccupied ? 'error' : 'success'} 
-            size="small"
-          />
+          <Tooltip title={classroom.isOccupied ? "Desocupar sala" : "Ocupar sala"}>
+            <IconButton
+              size="small"
+              onClick={classroom.isOccupied ? handleVacate : handleOccupy}
+              disabled={isLoading}
+              color={classroom.isOccupied ? "error" : "success"}
+            >
+              {classroom.isOccupied ? <PersonRemoveIcon /> : <PersonAddIcon />}
+            </IconButton>
+          </Tooltip>
         </Box>
       </CardContent>
     </Card>

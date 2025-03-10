@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, CircularProgress, Box, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { NavigationTabs } from '../components/NavigationTabs';
@@ -109,6 +109,24 @@ export function Home() {
     }
   };
 
+  const handleOccupy = async (id: number, teacher: string, subject: string) => {
+    try {
+      await classroomService.occupy(id, teacher, subject);
+      loadClassrooms();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Erro ao ocupar sala. Tente novamente.');
+    }
+  };
+
+  const handleVacate = async (id: number) => {
+    try {
+      await classroomService.vacate(id);
+      loadClassrooms();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Erro ao desocupar sala. Tente novamente.');
+    }
+  };
+
   return (
     <Container 
       maxWidth="lg" 
@@ -177,6 +195,8 @@ export function Home() {
                   classroom={classroom}
                   onEdit={handleOpenForm}
                   onDelete={handleDeleteClassroom}
+                  onOccupy={handleOccupy}
+                  onVacate={handleVacate}
                 />
               </Grid>
             ))}
