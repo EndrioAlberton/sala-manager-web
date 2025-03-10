@@ -1,11 +1,35 @@
-import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Chip, IconButton, Tooltip } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { ClassRoom } from '../types/ClassRoom';
+import React from 'react';
 
 interface ClassroomCardProps {
   classroom: ClassRoom;
+  onEdit: (classroom: ClassRoom) => void;
+  onDelete: (classroom: ClassRoom) => void;
 }
 
-export function ClassroomCard({ classroom }: ClassroomCardProps) {
+export function ClassroomCard({ classroom, onEdit, onDelete }: ClassroomCardProps) {
+  const handleDelete = () => {
+    if (classroom.isOccupied) {
+      alert('Não é possível deletar uma sala que está ocupada.');
+      return;
+    }
+    
+    if (window.confirm('Tem certeza que deseja deletar esta sala?')) {
+      onDelete(classroom);
+    }
+  };
+
+  const handleEdit = () => {
+    if (classroom.isOccupied) {
+      alert('Não é possível editar uma sala que está ocupada.');
+      return;
+    }
+    onEdit(classroom);
+  };
+
   return (
     <Card 
       sx={{ 
@@ -24,9 +48,36 @@ export function ClassroomCard({ classroom }: ClassroomCardProps) {
           '&:last-child': { pb: 2 }
         }}
       >
-        <Typography variant="h6" gutterBottom>
-          Sala {classroom.roomNumber}
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+          <Typography variant="h6">
+            Sala {classroom.roomNumber}
+          </Typography>
+          <Box>
+            <Tooltip title={classroom.isOccupied ? "Não é possível editar uma sala ocupada" : "Editar"}>
+              <span>
+                <IconButton 
+                  size="small" 
+                  onClick={handleEdit}
+                  disabled={classroom.isOccupied}
+                  sx={{ mr: 1 }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+            <Tooltip title={classroom.isOccupied ? "Não é possível deletar uma sala ocupada" : "Deletar"}>
+              <span>
+                <IconButton 
+                  size="small" 
+                  onClick={handleDelete}
+                  disabled={classroom.isOccupied}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
+        </Box>
         <Typography color="textSecondary" gutterBottom>
           Prédio: {classroom.building}
         </Typography>

@@ -1,3 +1,4 @@
+import React from 'react';
 import { TextField, Button, Box, FormControlLabel, Checkbox, Grid } from '@mui/material';
 
 interface SearchFilters {
