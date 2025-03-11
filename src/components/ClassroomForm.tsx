@@ -54,7 +54,7 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
       setValue('desks', classroom.desks);
       setValue('chairs', classroom.chairs);
       setValue('computers', classroom.computers || 0);
-      setValue('projectors', classroom.projectors || 0);
+      setValue('projectors', classroom.hasProjector ? 1 : 0);
       setValue('maxStudents', classroom.maxStudents);
     } else {
       reset();

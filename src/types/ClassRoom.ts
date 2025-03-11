@@ -6,7 +6,7 @@ export interface ClassRoom {
   desks: number;
   chairs: number;
   computers?: number;
-  projectors?: number;
+  hasProjector: boolean;
   maxStudents: number;
   isOccupied: boolean;
   currentTeacher?: string;

@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { ClassRoom } from '../types/ClassRoom';
+import { Occupation } from '../types/Occupation';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -11,60 +12,11 @@ export interface SearchFilters {
   searchTerm: string;
   maxStudents: number | '';
   hasProjector: boolean;
-  isOccupied?: boolean;
 }
 
 export const classroomService = {
   findAll: async (): Promise<ClassRoom[]> => {
     const response = await api.get('/classrooms');
-    return response.data;
-  },
-
-  searchByFilters: async (filters: SearchFilters): Promise<ClassRoom[]> => {
-    const response = await api.get('/classrooms');
-    const classrooms: ClassRoom[] = response.data;
-
-    return classrooms.filter(classroom => {
-      // Filtro por ocupação
-      if (filters.isOccupied !== undefined) {
-        if (filters.isOccupied !== classroom.isOccupied) {
-          return false;
-        }
-      }
-
-      // Filtro por termo de busca (número da sala, professor ou disciplina)
-      if (filters.searchTerm) {
-        const searchTerm = filters.searchTerm.toLowerCase();
-        const matchesRoom = classroom.roomNumber.toString().toLowerCase().includes(searchTerm);
-        const matchesTeacher = classroom.currentTeacher?.toLowerCase().includes(searchTerm);
-        const matchesSubject = classroom.currentSubject?.toLowerCase().includes(searchTerm);
-        
-        if (!matchesRoom && !matchesTeacher && !matchesSubject) {
-          return false;
-        }
-      }
-
-      // Filtro por capacidade mínima
-      if (filters.maxStudents && classroom.maxStudents < filters.maxStudents) {
-        return false;
-      }
-
-      // Filtro por projetor - corrigido
-      if (filters.hasProjector && classroom.projectors === 0) {
-        return false;
-      }
-
-      return true;
-    });
-  },
-
-  searchByRoomNumber: async (roomNumber: string): Promise<ClassRoom[]> => {
-    const response = await api.get(`/classrooms/search?roomNumber=${roomNumber}`);
-    return response.data;
-  },
-
-  findAvailable: async (): Promise<ClassRoom[]> => {
-    const response = await api.get('/classrooms/available');
     return response.data;
   },
 
@@ -85,15 +37,91 @@ export const classroomService = {
 
   remove: async (id: number): Promise<void> => {
     await api.delete(`/classrooms/${id}`);
+  }
+};
+
+export const occupationService = {
+  create: async (data: {
+    roomId: number;
+    teacher: string;
+    subject: string;
+    startDate: Date;
+    endDate: Date;
+    startTime: string;
+    endTime: string;
+    daysOfWeek: number[];
+  }): Promise<Occupation> => {
+    try {
+      const response = await api.post('/occupations', data);
+      return response.data;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error('Erro ao criar ocupação');
+    }
   },
 
-  occupy: async (id: number, teacher: string, subject: string): Promise<ClassRoom> => {
-    const response = await api.put(`/classrooms/${id}/occupy`, { teacher, subject });
-    return response.data;
+  findByRoom: async (roomId: number): Promise<Occupation[]> => {
+    try {
+      const response = await api.get(`/occupations/room/${roomId}`);
+      return response.data;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error('Erro ao buscar ocupações da sala');
+    }
   },
 
-  vacate: async (id: number): Promise<ClassRoom> => {
-    const response = await api.put(`/classrooms/${id}/vacate`);
-    return response.data;
+  getCurrentOccupation: async (roomId: number): Promise<Occupation | null> => {
+    try {
+      const response = await api.get(`/occupations/room/${roomId}/current`);
+      return response.data;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error('Erro ao verificar ocupação atual');
+    }
   },
+
+  checkAvailability: async (data: {
+    roomId: number;
+    startDate: Date;
+    endDate: Date;
+    startTime: string;
+    endTime: string;
+    daysOfWeek: number[];
+  }): Promise<boolean> => {
+    try {
+      const response = await api.post('/occupations/check-availability', data);
+      return response.data.available;
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error('Erro ao verificar disponibilidade');
+    }
+  },
+
+  getOccupiedRooms: async (date: string, time: string): Promise<Occupation[]> => {
+    try {
+      console.log('Chamando API com:', { date, time });
+      const response = await api.get('/occupations/occupied', {
+        params: {
+          date,
+          time
+        }
+      });
+      console.log('Resposta da API:', response.data);
+      return response.data;
+    } catch (err) {
+      console.error('Erro completo:', err);
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        throw new Error(err.response.data.message);
+      }
+      throw new Error('Erro ao buscar salas ocupadas');
+    }
+  }
 }; 
