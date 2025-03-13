@@ -8,8 +8,10 @@ import {
   DialogActions, 
   Button, 
   TextField, 
-  Grid,
-  Alert
+  Grid, 
+  Checkbox, 
+  FormControlLabel,
+  Alert 
 } from '@mui/material';
 import { classroomSchema, ClassroomFormData } from '../schemas/classroomSchema';
 import { ClassRoom } from '../types/ClassRoom';
@@ -41,7 +43,7 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
       desks: 1,
       chairs: 1,
       computers: 0,
-      projectors: 0,
+      hasProjector: false, 
       maxStudents: 1
     }
   });
@@ -54,7 +56,7 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
       setValue('desks', classroom.desks);
       setValue('chairs', classroom.chairs);
       setValue('computers', classroom.computers || 0);
-      setValue('projectors', classroom.hasProjector ? 1 : 0);
+      setValue('hasProjector', classroom.hasProjector ? true : false);
       setValue('maxStudents', classroom.maxStudents);
     } else {
       reset();
@@ -66,15 +68,23 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
     setError('');
 
     try {
+      const formattedData = {
+        ...data,
+        hasProjector: data.hasProjector === true,
+      };
+
       if (classroom) {
-        await classroomService.update(classroom.id, data);
+        await classroomService.update(classroom.id, formattedData);
       } else {
-        await classroomService.create(data);
+        await classroomService.create(formattedData);
       }
       onSuccess();
       onClose();
       reset();
     } catch (err: any) {
+      console.error('Erro ao enviar dados:', err.response?.data || err);
+      console.log('Editando sala com ID:', classroom?.id);
+      console.log('Dados enviados:', JSON.stringify(data, null, 2));
       setError(err.response?.data?.message || 'Erro ao salvar sala. Tente novamente.');
     } finally {
       setIsLoading(false);
@@ -93,7 +103,7 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
               {error}
             </Alert>
           )}
-          
+
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -154,13 +164,15 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                type="number"
-                label="Número de Projetores"
-                {...register('projectors', { valueAsNumber: true })}
-                error={!!errors.projectors}
-                helperText={errors.projectors?.message}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    {...register('hasProjector')}
+                    onChange={(e) => setValue('hasProjector', e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Possui Projetor?"
               />
             </Grid>
             <Grid item xs={12}>
@@ -188,4 +200,4 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
       </form>
     </Dialog>
   );
-} 
+}

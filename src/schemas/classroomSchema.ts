@@ -20,9 +20,7 @@ export const classroomSchema = z.object({
     .min(0, 'Número de computadores deve ser maior ou igual a 0')
     .max(50, 'Número de computadores deve ser menor ou igual a 50')
     .optional(),
-  projectors: z.number()
-    .min(0, 'Número de projetores deve ser maior ou igual a 0')
-    .max(5, 'Número de projetores deve ser menor ou igual a 5')
+    hasProjector: z.boolean()
     .optional(),
   maxStudents: z.number()
     .min(1, 'Capacidade máxima deve ser maior que 0')
