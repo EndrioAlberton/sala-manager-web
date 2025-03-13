@@ -43,17 +43,13 @@ export function Home() {
 
     try {
       const allClassrooms = await classroomService.findAll();
-      console.log('Todas as salas:', allClassrooms);
       
       const currentDate = currentDateTime.toISOString().split('T')[0];
       const currentTime = format(currentDateTime, 'HH:mm');
-      console.log('Data e hora atuais:', { currentDate, currentTime });
 
       const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
-      console.log('Salas ocupadas retornadas:', occupiedRooms);
       
       const occupiedRoomIds = new Set(occupiedRooms.map(o => o.roomId));
-      console.log('IDs das salas ocupadas:', Array.from(occupiedRoomIds));
 
       let filteredClassrooms: ClassRoomWithOccupation[] = [];
 
@@ -64,12 +60,10 @@ export function Home() {
             ...classroom,
             currentOccupation: occupiedRooms.find(o => o.roomId === classroom.id)
           }));
-        console.log('Salas filtradas (ocupadas):', filteredClassrooms);
       } else {
         filteredClassrooms = allClassrooms
           .filter(classroom => !occupiedRoomIds.has(classroom.id))
           .map(classroom => ({ ...classroom }));
-        console.log('Salas filtradas (disponíveis):', filteredClassrooms);
       }
 
       setClassrooms(filteredClassrooms);

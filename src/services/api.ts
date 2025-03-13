@@ -107,14 +107,12 @@ export const occupationService = {
 
   getOccupiedRooms: async (date: string, time: string): Promise<Occupation[]> => {
     try {
-      console.log('Chamando API com:', { date, time });
       const response = await api.get('/occupations/occupied', {
         params: {
           date,
           time
         }
       });
-      console.log('Resposta da API:', response.data);
       return response.data;
     } catch (err) {
       console.error('Erro completo:', err);
