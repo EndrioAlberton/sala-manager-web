@@ -1,9 +1,40 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Container, 
+  Grid, 
+  Typography, 
+  Box, 
+  Paper, 
+  styled 
+} from '@mui/material';
 import { authService } from '../services/authService';
 import { Header } from '../components/Header';
 import { Card } from '../components/Card';
 import { Table } from '../components/Table';
+
+// Componente estilizado para o fundo da página
+const StyledBackground = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  background: 'linear-gradient(to bottom right, #f8f9fa, #e6f2ff)',
+  paddingBottom: theme.spacing(8)
+}));
+
+// Componente estilizado para os cards com estatísticas
+const StatsCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  transition: 'transform 0.2s',
+  '&:hover': {
+    transform: 'scale(1.02)'
+  }
+}));
 
 export function Dashboard() {
     const navigate = useNavigate();
@@ -15,58 +46,89 @@ export function Dashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <StyledBackground>
             <Header onLogout={handleLogout} />
             
-            <main className="container mx-auto px-4 py-8">
-                <div className="mb-8 animate-fade-in">
-                    <h1 className="text-3xl font-bold text-gray-900">Gerenciamento de Salas</h1>
-                    <p className="text-gray-600 mt-2">Visualize e gerencie as salas disponíveis</p>
-                </div>
+            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+                {/* Título e subtítulo */}
+                <Box sx={{ mb: 4, animation: 'fadeIn 0.3s ease-out' }}>
+                    <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        Gerenciamento de Salas
+                    </Typography>
+                    <Typography variant="subtitle1" color="text.secondary">
+                        Visualize e gerencie as salas disponíveis
+                    </Typography>
+                </Box>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <Card className="glass-effect shadow-soft hover-scale">
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Salas Disponíveis</h3>
-                            <p className="text-4xl font-bold text-indigo-600">12</p>
-                            <p className="text-gray-500 mt-2">Salas livres no momento</p>
-                        </div>
-                    </Card>
+                {/* Grid de estatísticas */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                    <Grid item xs={12} md={4}>
+                        <StatsCard>
+                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
+                                Salas Disponíveis
+                            </Typography>
+                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                                12
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                Salas livres no momento
+                            </Typography>
+                        </StatsCard>
+                    </Grid>
 
-                    <Card className="glass-effect shadow-soft hover-scale">
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Ocupações Hoje</h3>
-                            <p className="text-4xl font-bold text-indigo-600">8</p>
-                            <p className="text-gray-500 mt-2">Salas ocupadas hoje</p>
-                        </div>
-                    </Card>
+                    <Grid item xs={12} md={4}>
+                        <StatsCard>
+                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
+                                Ocupações Hoje
+                            </Typography>
+                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                                8
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                Salas ocupadas hoje
+                            </Typography>
+                        </StatsCard>
+                    </Grid>
 
-                    <Card className="glass-effect shadow-soft hover-scale">
-                        <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Próximas Reservas</h3>
-                            <p className="text-4xl font-bold text-indigo-600">5</p>
-                            <p className="text-gray-500 mt-2">Reservas para amanhã</p>
-                        </div>
-                    </Card>
-                </div>
+                    <Grid item xs={12} md={4}>
+                        <StatsCard>
+                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
+                                Próximas Reservas
+                            </Typography>
+                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                                5
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                Reservas para amanhã
+                            </Typography>
+                        </StatsCard>
+                    </Grid>
+                </Grid>
 
-                <div className="animate-fade-in">
-                    <Card className="glass-effect shadow-soft">
-                        <div className="p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Lista de Salas</h2>
-                            <Table
-                                columns={[
-                                    { key: 'name', label: 'Nome' },
-                                    { key: 'capacity', label: 'Capacidade' },
-                                    { key: 'type', label: 'Tipo' },
-                                    { key: 'status', label: 'Status' }
-                                ]}
-                                data={[]}
-                            />
-                        </div>
-                    </Card>
-                </div>
-            </main>
-        </div>
+                {/* Tabela de salas */}
+                <Paper 
+                    sx={{ 
+                        p: 3, 
+                        borderRadius: 2, 
+                        boxShadow: 1,
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        backdropFilter: 'blur(10px)'
+                    }}
+                >
+                    <Typography variant="h5" component="h2" sx={{ mb: 3, fontWeight: 600 }}>
+                        Lista de Salas
+                    </Typography>
+                    <Table
+                        columns={[
+                            { key: 'name', label: 'Nome' },
+                            { key: 'capacity', label: 'Capacidade' },
+                            { key: 'type', label: 'Tipo' },
+                            { key: 'status', label: 'Status' }
+                        ]}
+                        data={[]}
+                    />
+                </Paper>
+            </Container>
+        </StyledBackground>
     );
 }

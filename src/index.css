@@ -1,6 +1,7 @@
-@tailwind base;
+/* Removendo as diretivas Tailwind */
+/* @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
 
 :root {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -45,6 +46,11 @@ body {
 
 .hover-scale:hover {
   transform: scale(1.02);
+}
+
+/* Botão largura total */
+.full-width-button {
+  width: 100%;
 }
 
 /* Animações */

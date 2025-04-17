@@ -1,11 +1,41 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { LoginCredentials } from '../services/api';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { Card } from '../components/Card';
 import { Alert } from '../components/Alert';
+import { 
+  Box, 
+  Typography, 
+  Container, 
+  Paper, 
+  Link,
+  styled
+} from '@mui/material';
+
+// Componente estilizado para o fundo da página
+const StyledBackground = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'linear-gradient(to bottom right, #e8eaf6, #bbdefb)',
+  padding: theme.spacing(2)
+}));
+
+// Componente estilizado para o card do formulário
+const FormCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  animation: 'fadeIn 0.3s ease-out',
+  width: '100%',
+  maxWidth: '450px',
+  marginTop: theme.spacing(2)
+}));
 
 export function Login() {
     const navigate = useNavigate();
@@ -64,20 +94,29 @@ export function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-blue-50 p-4">
-            <div className="w-full max-w-md">
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Sala Manager</h1>
-                    <p className="text-gray-600">Gerencie suas salas de forma eficiente</p>
-                </div>
+        <StyledBackground>
+            <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* Logo e título */}
+                <Box sx={{ mb: 4, textAlign: 'center' }}>
+                    <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e', mb: 1 }}>
+                        Sala Manager
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+                        Gerencie suas salas de forma eficiente
+                    </Typography>
+                </Box>
 
-                <Card className="glass-effect shadow-soft animate-fade-in">
-                    <div className="text-center mb-6">
-                        <h2 className="text-2xl font-semibold text-gray-900">Bem-vindo</h2>
-                        <p className="text-gray-600 mt-2">Faça login para continuar</p>
-                    </div>
+                <FormCard>
+                    <Box sx={{ mb: 3, textAlign: 'center' }}>
+                        <Typography variant="h5" component="h2" sx={{ fontWeight: 600, mb: 1 }}>
+                            Bem-vindo
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Faça login para continuar
+                        </Typography>
+                    </Box>
 
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit}>
                         {error && <Alert message={error} />}
                         
                         <Input
@@ -88,8 +127,8 @@ export function Login() {
                             required
                             value={formData.email}
                             onChange={handleChange}
-                            className="hover-scale"
                             placeholder="Seu e-mail"
+                            fullWidth
                         />
 
                         <Input
@@ -100,32 +139,43 @@ export function Login() {
                             required
                             value={formData.password}
                             onChange={handleChange}
-                            className="hover-scale"
                             placeholder="Sua senha"
+                            fullWidth
                         />
 
-                        <div>
+                        <Box sx={{ mt: 3 }}>
                             <Button
                                 type="submit"
                                 isLoading={loading}
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                                variant="primary"
+                                className="full-width-button"
                             >
                                 Entrar
                             </Button>
-                        </div>
+                        </Box>
 
-                        <div className="text-center">
-                            <a
-                                href="/register"
-                                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+                        <Box sx={{ mt: 2, textAlign: 'center' }}>
+                            <Link 
+                                component={RouterLink} 
+                                to="/register" 
+                                sx={{ 
+                                    fontSize: '0.875rem', 
+                                    fontWeight: 500,
+                                    color: 'primary.main',
+                                    textDecoration: 'none',
+                                    '&:hover': {
+                                        textDecoration: 'underline'
+                                    }
+                                }}
                             >
                                 Não tem uma conta? Registre-se
-                            </a>
-                        </div>
+                            </Link>
+                        </Box>
                         
-                        <div className="text-center mt-4">
-                            <button
+                        <Box sx={{ mt: 3, textAlign: 'center' }}>
+                            <Button
                                 type="button"
+                                variant="secondary"
                                 onClick={async () => {
                                     try {
                                         setLoading(true);
@@ -145,14 +195,13 @@ export function Login() {
                                         setLoading(false);
                                     }
                                 }}
-                                className="text-xs text-gray-500 hover:text-gray-700"
                             >
                                 Criar usuário de teste
-                            </button>
-                        </div>
+                            </Button>
+                        </Box>
                     </form>
-                </Card>
-            </div>
-        </div>
+                </FormCard>
+            </Container>
+        </StyledBackground>
     );
 } 

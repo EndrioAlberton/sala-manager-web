@@ -1,11 +1,41 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { User } from '../services/api';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { Card } from '../components/Card';
 import { Alert } from '../components/Alert';
+import { 
+  Box, 
+  Typography, 
+  Container, 
+  Paper, 
+  Link,
+  styled
+} from '@mui/material';
+
+// Componente estilizado para o fundo da página
+const StyledBackground = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'linear-gradient(to bottom right, #e8eaf6, #bbdefb)',
+  padding: theme.spacing(2)
+}));
+
+// Componente estilizado para o card do formulário
+const FormCard = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  animation: 'fadeIn 0.3s ease-out',
+  width: '100%',
+  maxWidth: '450px',
+  marginTop: theme.spacing(2)
+}));
 
 export function Register() {
     const navigate = useNavigate();
@@ -41,10 +71,29 @@ export function Register() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <Card title="Crie sua conta">
-                    <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <StyledBackground>
+            <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {/* Logo e título */}
+                <Box sx={{ mb: 4, textAlign: 'center' }}>
+                    <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e', mb: 1 }}>
+                        Sala Manager
+                    </Typography>
+                    <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+                        Gerencie suas salas de forma eficiente
+                    </Typography>
+                </Box>
+
+                <FormCard>
+                    <Box sx={{ mb: 3, textAlign: 'center' }}>
+                        <Typography variant="h5" component="h2" sx={{ fontWeight: 600, mb: 1 }}>
+                            Crie sua conta
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            Preencha os dados abaixo para se registrar
+                        </Typography>
+                    </Box>
+
+                    <form onSubmit={handleSubmit}>
                         {error && <Alert message={error} />}
 
                         <Input
@@ -55,6 +104,8 @@ export function Register() {
                             required
                             value={formData.name}
                             onChange={handleChange}
+                            placeholder="Seu nome completo"
+                            fullWidth
                         />
 
                         <Input
@@ -65,6 +116,8 @@ export function Register() {
                             required
                             value={formData.email}
                             onChange={handleChange}
+                            placeholder="Seu e-mail"
+                            fullWidth
                         />
 
                         <Input
@@ -75,29 +128,41 @@ export function Register() {
                             required
                             value={formData.password}
                             onChange={handleChange}
+                            placeholder="Sua senha"
+                            fullWidth
                         />
 
-                        <div>
+                        <Box sx={{ mt: 3 }}>
                             <Button
                                 type="submit"
                                 isLoading={loading}
-                                className="w-full"
+                                variant="primary"
+                                className="full-width-button"
                             >
                                 Registrar
                             </Button>
-                        </div>
+                        </Box>
 
-                        <div className="text-sm text-center">
-                            <a
-                                href="/login"
-                                className="font-medium text-indigo-600 hover:text-indigo-500"
+                        <Box sx={{ mt: 2, textAlign: 'center' }}>
+                            <Link 
+                                component={RouterLink} 
+                                to="/login" 
+                                sx={{ 
+                                    fontSize: '0.875rem', 
+                                    fontWeight: 500,
+                                    color: 'primary.main',
+                                    textDecoration: 'none',
+                                    '&:hover': {
+                                        textDecoration: 'underline'
+                                    }
+                                }}
                             >
                                 Já tem uma conta? Faça login
-                            </a>
-                        </div>
+                            </Link>
+                        </Box>
                     </form>
-                </Card>
-            </div>
-        </div>
+                </FormCard>
+            </Container>
+        </StyledBackground>
     );
 } 

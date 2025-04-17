@@ -1,3 +1,18 @@
+import { 
+  Table as MuiTable, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  IconButton, 
+  Tooltip,
+  Button 
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 interface TableColumn {
     key: string;
     label: string;
@@ -12,61 +27,74 @@ interface TableProps {
 }
 
 export function Table({ columns, data, onEdit, onDelete }: TableProps) {
+    const hasActions = Boolean(onEdit || onDelete);
+    
     return (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                    <tr>
+        <TableContainer component={Paper} sx={{ boxShadow: 1, borderRadius: 1 }}>
+            <MuiTable sx={{ minWidth: 650 }}>
+                <TableHead>
+                    <TableRow sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
                         {columns.map((column) => (
-                            <th
-                                key={column.key}
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
+                            <TableCell key={column.key} sx={{ fontWeight: 'medium' }}>
                                 {column.label}
-                            </th>
+                            </TableCell>
                         ))}
-                        {(onEdit || onDelete) && (
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {hasActions && (
+                            <TableCell sx={{ fontWeight: 'medium' }}>
                                 Ações
-                            </th>
+                            </TableCell>
                         )}
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {data.map((item, index) => (
-                        <tr key={index}>
-                            {columns.map((column) => (
-                                <td key={column.key} className="px-6 py-4 whitespace-nowrap">
-                                    {column.render
-                                        ? column.render(item[column.key], item)
-                                        : <div className="text-sm text-gray-900">{item[column.key]}</div>
-                                    }
-                                </td>
-                            ))}
-                            {(onEdit || onDelete) && (
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    {onEdit && (
-                                        <button
-                                            onClick={() => onEdit(item)}
-                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
-                                        >
-                                            Editar
-                                        </button>
-                                    )}
-                                    {onDelete && (
-                                        <button
-                                            onClick={() => onDelete(item)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            Excluir
-                                        </button>
-                                    )}
-                                </td>
-                            )}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {data.length === 0 ? (
+                        <TableRow>
+                            <TableCell align="center" colSpan={columns.length + (hasActions ? 1 : 0)}>
+                                Nenhum dado disponível
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        data.map((item, index) => (
+                            <TableRow key={index} hover>
+                                {columns.map((column) => (
+                                    <TableCell key={column.key}>
+                                        {column.render
+                                            ? column.render(item[column.key], item)
+                                            : item[column.key]}
+                                    </TableCell>
+                                ))}
+                                {hasActions && (
+                                    <TableCell>
+                                        {onEdit && (
+                                            <Tooltip title="Editar">
+                                                <IconButton 
+                                                    size="small" 
+                                                    color="primary" 
+                                                    onClick={() => onEdit(item)}
+                                                    sx={{ mr: 1 }}
+                                                >
+                                                    <EditIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+                                        {onDelete && (
+                                            <Tooltip title="Excluir">
+                                                <IconButton 
+                                                    size="small" 
+                                                    color="error" 
+                                                    onClick={() => onDelete(item)}
+                                                >
+                                                    <DeleteIcon fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </MuiTable>
+        </TableContainer>
     );
 } 

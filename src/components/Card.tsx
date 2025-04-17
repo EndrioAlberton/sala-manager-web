@@ -1,3 +1,5 @@
+import { Card as MuiCard, CardContent, Typography } from '@mui/material';
+
 interface CardProps {
     title?: string;
     children: React.ReactNode;
@@ -6,15 +8,33 @@ interface CardProps {
 
 export function Card({ title, children, className = '' }: CardProps) {
     return (
-        <div className={`bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 ${className}`}>
-            {title && (
-                <div className="mb-8">
-                    <h2 className="text-3xl font-extrabold text-gray-900 text-center">
+        <MuiCard 
+            sx={{ 
+                py: 4,
+                px: 2,
+                boxShadow: 2,
+                borderRadius: 2,
+                backgroundColor: 'white'
+            }}
+            className={className}
+        >
+            <CardContent>
+                {title && (
+                    <Typography 
+                        variant="h4" 
+                        component="h2" 
+                        sx={{ 
+                            mb: 4, 
+                            fontWeight: 'bold', 
+                            textAlign: 'center',
+                            fontSize: '1.875rem'
+                        }}
+                    >
                         {title}
-                    </h2>
-                </div>
-            )}
-            {children}
-        </div>
+                    </Typography>
+                )}
+                {children}
+            </CardContent>
+        </MuiCard>
     );
 } 
