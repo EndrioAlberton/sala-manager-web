@@ -1,134 +1,283 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Box, 
-  Paper, 
-  styled 
-} from '@mui/material';
+import { Container, Typography, Grid, CircularProgress, Box, Button, Chip } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { authService } from '../services/authService';
-import { Header } from '../components/Header';
-import { Card } from '../components/Card';
-import { Table } from '../components/Table';
+import { classroomService, occupationService } from '../services/api';
+import { ClassRoom } from '../types/ClassRoom';
+import { Occupation } from '../types/Occupation';
+import { ClassroomCard } from '../components/ClassroomCard';
+import { ClassroomForm } from '../components/ClassroomForm';
 
-// Componente estilizado para o fundo da página
-const StyledBackground = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  background: 'linear-gradient(to bottom right, #f8f9fa, #e6f2ff)',
-  paddingBottom: theme.spacing(8)
-}));
+// Componentes que precisamos criar
+import { NavigationTabs } from '../components/NavigationTabs';
+import { OccupiedSearchBar } from '../components/OccupiedSearchBar';
+import { AvailableSearchBar } from '../components/AvailableSearchBar';
 
-// Componente estilizado para os cards com estatísticas
-const StatsCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  borderRadius: theme.shape.borderRadius * 2,
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
-  background: 'rgba(255, 255, 255, 0.8)',
-  backdropFilter: 'blur(10px)',
-  transition: 'transform 0.2s',
-  '&:hover': {
-    transform: 'scale(1.02)'
-  }
-}));
+interface ClassRoomWithOccupation extends ClassRoom {
+  currentOccupation?: Occupation;
+}
 
 export function Dashboard() {
-    const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('classrooms');
+  const navigate = useNavigate();
+  const [currentTab, setCurrentTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [maxStudents, setMaxStudents] = useState<number | ''>('');
+  const [hasProjector, setHasProjector] = useState(false);
+  const [classrooms, setClassrooms] = useState<ClassRoomWithOccupation[]>([]);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedClassroom, setSelectedClassroom] = useState<ClassRoom | undefined>();
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
-    const handleLogout = () => {
-        authService.logout();
-        navigate('/login');
-    };
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
 
-    return (
-        <StyledBackground>
-            <Header onLogout={handleLogout} />
+  useEffect(() => {
+    // Atualiza a data/hora a cada minuto
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const loadClassrooms = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const allClassrooms = await classroomService.findAll();
+      
+      const currentDate = currentDateTime.toISOString().split('T')[0];
+      const currentTime = format(currentDateTime, 'HH:mm');
+
+      const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
+      
+      const occupiedRoomIds = new Set(occupiedRooms.map(o => o.roomId));
+
+      let filteredClassrooms: ClassRoomWithOccupation[] = [];
+
+      if (currentTab === 0) {
+        filteredClassrooms = allClassrooms
+          .filter(classroom => occupiedRoomIds.has(classroom.id))
+          .map(classroom => ({
+            ...classroom,
+            currentOccupation: occupiedRooms.find(o => o.roomId === classroom.id)
+          }));
+      } else {
+        filteredClassrooms = allClassrooms
+          .filter(classroom => !occupiedRoomIds.has(classroom.id))
+          .map(classroom => ({ ...classroom }));
+      }
+
+      setClassrooms(filteredClassrooms);
+      if (filteredClassrooms.length === 0) {
+        setError(currentTab === 0 ? 'Nenhuma sala ocupada no momento' : 'Nenhuma sala disponível no momento');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar salas:', err);
+      setError('Erro ao carregar as salas. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const allClassrooms = await classroomService.findAll();
+      
+      const currentDate = currentDateTime.toISOString().split('T')[0];
+      const currentTime = format(currentDateTime, 'HH:mm');
+
+      const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
+      const occupiedRoomIds = new Set(occupiedRooms.map(o => o.roomId));
+
+      let filteredClassrooms: ClassRoomWithOccupation[] = [];
+
+      if (currentTab === 0) {
+        filteredClassrooms = allClassrooms
+          .filter(classroom => {
+            if (!occupiedRoomIds.has(classroom.id)) return false;
             
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                {/* Título e subtítulo */}
-                <Box sx={{ mb: 4, animation: 'fadeIn 0.3s ease-out' }}>
-                    <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        Gerenciamento de Salas
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary">
-                        Visualize e gerencie as salas disponíveis
-                    </Typography>
-                </Box>
+            const occupation = occupiedRooms.find(o => o.roomId === classroom.id);
+            if (!occupation) return false;
 
-                {/* Grid de estatísticas */}
-                <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={12} md={4}>
-                        <StatsCard>
-                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
-                                Salas Disponíveis
-                            </Typography>
-                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                                12
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                Salas livres no momento
-                            </Typography>
-                        </StatsCard>
-                    </Grid>
+            const searchTermLower = searchTerm.toLowerCase();
+            return classroom.roomNumber.toString().toLowerCase().includes(searchTermLower) ||
+                   occupation.teacher.toLowerCase().includes(searchTermLower) ||
+                   occupation.subject.toLowerCase().includes(searchTermLower);
+          })
+          .map(classroom => ({
+            ...classroom,
+            currentOccupation: occupiedRooms.find(o => o.roomId === classroom.id)
+          }));
+      } else {
+        filteredClassrooms = allClassrooms
+          .filter(classroom => {
+            if (occupiedRoomIds.has(classroom.id)) return false;
+            
+            if (searchTerm && !classroom.roomNumber.toString().toLowerCase().includes(searchTerm.toLowerCase())) {
+              return false;
+            }
 
-                    <Grid item xs={12} md={4}>
-                        <StatsCard>
-                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
-                                Ocupações Hoje
-                            </Typography>
-                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                                8
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                Salas ocupadas hoje
-                            </Typography>
-                        </StatsCard>
-                    </Grid>
+            if (maxStudents && classroom.maxStudents < maxStudents) {
+              return false;
+            }
 
-                    <Grid item xs={12} md={4}>
-                        <StatsCard>
-                            <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: 600 }}>
-                                Próximas Reservas
-                            </Typography>
-                            <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-                                5
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                Reservas para amanhã
-                            </Typography>
-                        </StatsCard>
-                    </Grid>
+            if (hasProjector && !classroom.hasProjector) {
+              return false;
+            }
+
+            return true;
+          })
+          .map(classroom => ({ ...classroom }));
+      }
+
+      setClassrooms(filteredClassrooms);
+      if (filteredClassrooms.length === 0) {
+        setError('Nenhuma sala encontrada com os critérios de busca');
+      }
+    } catch (err) {
+      setError('Erro ao buscar salas. Tente novamente.');
+      setClassrooms([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadClassrooms();
+  }, [currentTab, currentDateTime]);
+
+  const handleOpenForm = (classroom?: ClassRoom) => {
+    setSelectedClassroom(classroom);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setSelectedClassroom(undefined);
+    setIsFormOpen(false);
+  };
+
+  const handleDeleteClassroom = async (classroom: ClassRoom) => {
+    try {
+      await classroomService.remove(classroom.id);
+      loadClassrooms();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Erro ao deletar sala. Tente novamente.');
+    }
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          p: 3,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{
+                fontSize: { xs: '1.5rem', sm: '2.125rem' },
+                mb: 1
+              }}
+            >
+              Sistema de Gerenciamento de Salas
+            </Typography>
+            <Chip 
+              label={format(currentDateTime, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenForm()}
+            >
+              Nova Sala
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleLogout}
+            >
+              Sair
+            </Button>
+          </Box>
+        </Box>
+
+        <Box sx={{ width: '100%' }}>
+          <NavigationTabs currentTab={currentTab} onTabChange={setCurrentTab} />
+
+          {currentTab === 0 ? (
+            <OccupiedSearchBar
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              onSearch={handleSearch}
+            />
+          ) : (
+            <AvailableSearchBar
+              searchTerm={searchTerm}
+              maxStudents={maxStudents}
+              hasProjector={hasProjector}
+              onSearchTermChange={setSearchTerm}
+              onMaxStudentsChange={setMaxStudents}
+              onHasProjectorChange={setHasProjector}
+              onSearch={handleSearch}
+            />
+          )}
+
+          {error && (
+            <Typography color="error" align="center" gutterBottom sx={{ width: '100%', my: 3 }}>
+              {error}
+            </Typography>
+          )}
+
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              {classrooms.map((classroom) => (
+                <Grid item xs={12} sm={6} md={4} key={classroom.id}>
+                  <ClassroomCard 
+                    classroom={classroom}
+                    onEdit={handleOpenForm}
+                    onDelete={handleDeleteClassroom}
+                    onRefresh={loadClassrooms}
+                  />
                 </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
 
-                {/* Tabela de salas */}
-                <Paper 
-                    sx={{ 
-                        p: 3, 
-                        borderRadius: 2, 
-                        boxShadow: 1,
-                        background: 'rgba(255, 255, 255, 0.8)',
-                        backdropFilter: 'blur(10px)'
-                    }}
-                >
-                    <Typography variant="h5" component="h2" sx={{ mb: 3, fontWeight: 600 }}>
-                        Lista de Salas
-                    </Typography>
-                    <Table
-                        columns={[
-                            { key: 'name', label: 'Nome' },
-                            { key: 'capacity', label: 'Capacidade' },
-                            { key: 'type', label: 'Tipo' },
-                            { key: 'status', label: 'Status' }
-                        ]}
-                        data={[]}
-                    />
-                </Paper>
-            </Container>
-        </StyledBackground>
-    );
+        <ClassroomForm
+          open={isFormOpen}
+          onClose={handleCloseForm}
+          classroom={selectedClassroom}
+          onSuccess={loadClassrooms}
+        />
+      </Container>
+    </Box>
+  );
 }

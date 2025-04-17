@@ -1,34 +1,48 @@
 import React from 'react';
-import { Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box, Paper } from '@mui/material';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 interface NavigationTabsProps {
   currentTab: number;
-  onTabChange: (newValue: number) => void;
+  onTabChange: (newTab: number) => void;
 }
 
 export function NavigationTabs({ currentTab, onTabChange }: NavigationTabsProps) {
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
+    onTabChange(newValue);
+  };
+
   return (
-    <Box sx={{ 
-      borderBottom: 1, 
-      borderColor: 'divider', 
-      mb: 3,
-      width: '100%',
-      overflowX: 'auto'
-    }}>
-      <Tabs 
-        value={currentTab} 
-        onChange={(_, newValue) => onTabChange(newValue)}
+    <Paper 
+      sx={{ 
+        mb: 3, 
+        borderRadius: 2,
+        overflow: 'hidden',
+        boxShadow: 1
+      }}
+    >
+      <Tabs
+        value={currentTab}
+        onChange={handleChange}
         variant="fullWidth"
-        sx={{
-          minHeight: {
-            xs: 'auto',
-            sm: '48px'
-          }
-        }}
+        indicatorColor="primary"
+        textColor="primary"
+        aria-label="navigation tabs"
       >
-        <Tab label="Salas Ocupadas" sx={{ minWidth: { xs: '50%', sm: 'auto' } }} />
-        <Tab label="Salas Disponíveis" sx={{ minWidth: { xs: '50%', sm: 'auto' } }} />
+        <Tab 
+          icon={<EventBusyIcon />} 
+          label="Salas Ocupadas" 
+          iconPosition="start"
+          sx={{ py: 2 }}
+        />
+        <Tab 
+          icon={<EventAvailableIcon />} 
+          label="Salas Disponíveis" 
+          iconPosition="start"
+          sx={{ py: 2 }}
+        />
       </Tabs>
-    </Box>
+    </Paper>
   );
 } 
