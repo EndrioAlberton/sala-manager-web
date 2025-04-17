@@ -225,9 +225,11 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
                 Computadores: {classroom.computers}
               </Typography>
             )}
-            <Typography variant="body2">
-              Projetor: {classroom.hasProjector ? "Sim" : "Não"}
-            </Typography>
+            {classroom.hasProjector && (
+              <Typography variant="body2">
+                Projetor: {classroom.hasProjector ? "Sim" : "Não"}
+              </Typography>
+            )}
           </>
         )}
 

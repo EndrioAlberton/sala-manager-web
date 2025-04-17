@@ -6,7 +6,38 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
+
+//adicionar o token em todas as requisições
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          // Limpar dados de autenticação
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          break;
+        default:
+          break;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface SearchFilters {
   searchTerm: string;
@@ -122,4 +153,23 @@ export const occupationService = {
       throw new Error('Erro ao buscar salas ocupadas');
     }
   }
-}; 
+};
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password?: string; // opcional pois não é retornado nas consultas
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export default api; 
