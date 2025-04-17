@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, TextField, InputAdornment, IconButton, Box } from '@mui/material';
+import { Paper, TextField, InputAdornment, IconButton, Box, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 
@@ -30,17 +30,16 @@ export function OccupiedSearchBar({
     <Paper 
       elevation={0}
       sx={{ 
-        p: 2, 
-        mb: 3, 
+        p: 1.5, 
+        mb: 2, 
         borderRadius: 2,
         backgroundColor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider'
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 1.5 }}>
         <TextField
-          fullWidth
           placeholder="Buscar por número da sala, professor ou disciplina..."
           value={searchTerm}
           onChange={(e) => onSearchTermChange(e.target.value)}
@@ -68,9 +67,18 @@ export function OccupiedSearchBar({
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
-            }
+            },
+            flexGrow: 1
           }}
         />
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={onSearch}
+          size="small"
+        >
+          Buscar
+        </Button>
       </Box>
     </Paper>
   );

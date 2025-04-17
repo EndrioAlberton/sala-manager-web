@@ -8,8 +8,8 @@ import {
   Grid, 
   FormControlLabel, 
   Checkbox, 
-  Button, 
-  Divider 
+  Button,
+  Stack
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -64,110 +64,109 @@ export function AvailableSearchBar({
     <Paper 
       elevation={0}
       sx={{ 
-        p: 2, 
-        mb: 3, 
+        p: 1.5, 
+        mb: 2, 
         borderRadius: 2,
         backgroundColor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider'
       }}
     >
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            placeholder="Buscar pelo número da sala..."
-            value={searchTerm}
-            onChange={(e) => onSearchTermChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            variant="outlined"
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm ? (
-                <InputAdornment position="end">
-                  <IconButton 
-                    size="small" 
-                    onClick={() => onSearchTermChange('')}
-                    edge="end"
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              }
-            }}
-          />
-        </Grid>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1.5 }}>
+        {/* Campo de busca */}
+        <TextField
+          placeholder="Buscar pelo número da sala..."
+          value={searchTerm}
+          onChange={(e) => onSearchTermChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          variant="outlined"
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+            endAdornment: searchTerm ? (
+              <InputAdornment position="end">
+                <IconButton 
+                  size="small" 
+                  onClick={() => onSearchTermChange('')}
+                  edge="end"
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+            },
+            flexGrow: 1
+          }}
+        />
 
-        <Grid item xs={12}>
-          <Divider sx={{ my: 1 }}>Filtros</Divider>
-        </Grid>
+        {/* Capacidade mínima */}
+        <TextField
+          label="Capacidade mínima"
+          placeholder="Nº de alunos"
+          type="number"
+          value={maxStudents}
+          onChange={handleMaxStudentsChange}
+          variant="outlined"
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <FilterAltIcon fontSize="small" color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ 
+            minWidth: '180px',
+            width: { xs: '100%', md: 'auto' }
+          }}
+        />
 
-        <Grid item xs={12} sm={6}>
-          <TextField
-            fullWidth
-            label="Capacidade mínima"
-            placeholder="Nº de alunos"
-            type="number"
-            value={maxStudents}
-            onChange={handleMaxStudentsChange}
-            variant="outlined"
-            size="small"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FilterAltIcon fontSize="small" color="action" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-
-        <Grid item xs={12} sm={6}>
-          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  checked={hasProjector}
-                  onChange={(e) => onHasProjectorChange(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label="Com projetor"
-            />
-          </Box>
-        </Grid>
-
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-            <Button 
-              variant="outlined" 
-              color="secondary"
-              onClick={handleClear}
-              size="small"
-            >
-              Limpar
-            </Button>
-            <Button 
-              variant="contained" 
+        {/* Checkbox projetor */}
+        <FormControlLabel
+          control={
+            <Checkbox 
+              checked={hasProjector}
+              onChange={(e) => onHasProjectorChange(e.target.checked)}
               color="primary"
-              onClick={onSearch}
               size="small"
-            >
-              Buscar
-            </Button>
-          </Box>
-        </Grid>
-      </Grid>
+            />
+          }
+          label="Com projetor"
+          sx={{ 
+            minWidth: '130px',
+            m: 0,
+            alignItems: 'center'
+          }}
+        />
+
+        {/* Botões de ação */}
+        <Stack direction="row" spacing={1} sx={{ ml: { xs: 0, md: 'auto' } }}>
+          <Button 
+            variant="outlined" 
+            color="secondary"
+            onClick={handleClear}
+            size="small"
+          >
+            Limpar
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={onSearch}
+            size="small"
+          >
+            Buscar
+          </Button>
+        </Stack>
+      </Box>
     </Paper>
   );
 } 

@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Grid, CircularProgress, Box, Button, Chip } from '@mui/material';
+import { 
+  Container, 
+  Typography, 
+  Grid, 
+  CircularProgress, 
+  Box, 
+  Button, 
+  Chip, 
+  Paper,
+  styled
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -15,6 +25,28 @@ import { ClassroomForm } from '../components/ClassroomForm';
 import { NavigationTabs } from '../components/NavigationTabs';
 import { OccupiedSearchBar } from '../components/OccupiedSearchBar';
 import { AvailableSearchBar } from '../components/AvailableSearchBar';
+
+// Componente estilizado para o fundo da página (similar ao Login/Register)
+const StyledBackground = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  background: 'linear-gradient(to bottom right, #e8eaf6, #bbdefb)',
+  padding: theme.spacing(2),
+  display: 'flex',
+  flexDirection: 'column'
+}));
+
+// Componente estilizado para o conteúdo principal
+const ContentWrapper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(3),
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+  background: 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  animation: 'fadeIn 0.3s ease-out',
+  flexGrow: 1,
+  display: 'flex',
+  flexDirection: 'column'
+}));
 
 interface ClassRoomWithOccupation extends ClassRoom {
   currentOccupation?: Occupation;
@@ -47,30 +79,35 @@ export function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Função para carregar todas as salas
   const loadClassrooms = async () => {
     setIsLoading(true);
     setError('');
 
     try {
+      // Buscar todas as salas
       const allClassrooms = await classroomService.findAll();
       
+      // Verificar quais salas estão ocupadas no momento
       const currentDate = currentDateTime.toISOString().split('T')[0];
       const currentTime = format(currentDateTime, 'HH:mm');
-
-      const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
       
+      const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
       const occupiedRoomIds = new Set(occupiedRooms.map(o => o.roomId));
 
+      // Filtrar salas conforme a tab selecionada
       let filteredClassrooms: ClassRoomWithOccupation[] = [];
-
-      if (currentTab === 0) {
+      
+      if (currentTab === 0) { // Salas ocupadas
+        // Filtrar apenas salas ocupadas
         filteredClassrooms = allClassrooms
           .filter(classroom => occupiedRoomIds.has(classroom.id))
           .map(classroom => ({
             ...classroom,
             currentOccupation: occupiedRooms.find(o => o.roomId === classroom.id)
           }));
-      } else {
+      } else { // Salas disponíveis
+        // Filtrar apenas salas disponíveis
         filteredClassrooms = allClassrooms
           .filter(classroom => !occupiedRoomIds.has(classroom.id))
           .map(classroom => ({ ...classroom }));
@@ -78,11 +115,11 @@ export function Dashboard() {
 
       setClassrooms(filteredClassrooms);
       if (filteredClassrooms.length === 0) {
-        setError(currentTab === 0 ? 'Nenhuma sala ocupada no momento' : 'Nenhuma sala disponível no momento');
+        setError(`Nenhuma sala ${currentTab === 0 ? 'ocupada' : 'disponível'} encontrada.`);
       }
     } catch (err) {
-      console.error('Erro ao carregar salas:', err);
-      setError('Erro ao carregar as salas. Tente novamente.');
+      setError('Erro ao carregar salas. Tente novamente.');
+      setClassrooms([]);
     } finally {
       setIsLoading(false);
     }
@@ -178,106 +215,99 @@ export function Dashboard() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <Container 
-        maxWidth="lg" 
-        sx={{ 
-          p: 3,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Box>
-            <Typography 
-              variant="h4" 
-              component="h1" 
-              sx={{
-                fontSize: { xs: '1.5rem', sm: '2.125rem' },
-                mb: 1
-              }}
-            >
-              Sistema de Gerenciamento de Salas
-            </Typography>
+    <StyledBackground>
+      <Container maxWidth="lg" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ textAlign: 'center', mb: 3 }}>
+          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e', mb: 1 }}>
+            Sala Manager
+          </Typography>
+          <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
+            Sistema de Gerenciamento de Salas
+          </Typography>
+        </Box>
+        
+        <ContentWrapper>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Chip 
               label={format(currentDateTime, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               color="primary"
               variant="outlined"
             />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => handleOpenForm()}
-            >
-              Nova Sala
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleLogout}
-            >
-              Sair
-            </Button>
-          </Box>
-        </Box>
-
-        <Box sx={{ width: '100%' }}>
-          <NavigationTabs currentTab={currentTab} onTabChange={setCurrentTab} />
-
-          {currentTab === 0 ? (
-            <OccupiedSearchBar
-              searchTerm={searchTerm}
-              onSearchTermChange={setSearchTerm}
-              onSearch={handleSearch}
-            />
-          ) : (
-            <AvailableSearchBar
-              searchTerm={searchTerm}
-              maxStudents={maxStudents}
-              hasProjector={hasProjector}
-              onSearchTermChange={setSearchTerm}
-              onMaxStudentsChange={setMaxStudents}
-              onHasProjectorChange={setHasProjector}
-              onSearch={handleSearch}
-            />
-          )}
-
-          {error && (
-            <Typography color="error" align="center" gutterBottom sx={{ width: '100%', my: 3 }}>
-              {error}
-            </Typography>
-          )}
-
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <CircularProgress />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => handleOpenForm()}
+                size="small"
+              >
+                Nova Sala
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleLogout}
+                size="small"
+              >
+                Sair
+              </Button>
             </Box>
-          ) : (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              {classrooms.map((classroom) => (
-                <Grid item xs={12} sm={6} md={4} key={classroom.id}>
-                  <ClassroomCard 
-                    classroom={classroom}
-                    onEdit={handleOpenForm}
-                    onDelete={handleDeleteClassroom}
-                    onRefresh={loadClassrooms}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
+          </Box>
 
-        <ClassroomForm
-          open={isFormOpen}
-          onClose={handleCloseForm}
-          classroom={selectedClassroom}
-          onSuccess={loadClassrooms}
-        />
+          <Box sx={{ width: '100%' }}>
+            <NavigationTabs currentTab={currentTab} onTabChange={setCurrentTab} />
+
+            {currentTab === 0 ? (
+              <OccupiedSearchBar
+                searchTerm={searchTerm}
+                onSearchTermChange={setSearchTerm}
+                onSearch={handleSearch}
+              />
+            ) : (
+              <AvailableSearchBar
+                searchTerm={searchTerm}
+                maxStudents={maxStudents}
+                hasProjector={hasProjector}
+                onSearchTermChange={setSearchTerm}
+                onMaxStudentsChange={setMaxStudents}
+                onHasProjectorChange={setHasProjector}
+                onSearch={handleSearch}
+              />
+            )}
+
+            {error && (
+              <Typography color="error" align="center" gutterBottom sx={{ width: '100%', my: 3 }}>
+                {error}
+              </Typography>
+            )}
+
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={3} sx={{ mt: 1 }}>
+                {classrooms.map((classroom) => (
+                  <Grid item xs={12} sm={6} md={4} key={classroom.id}>
+                    <ClassroomCard 
+                      classroom={classroom}
+                      onEdit={handleOpenForm}
+                      onDelete={handleDeleteClassroom}
+                      onRefresh={loadClassrooms}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Box>
+
+          <ClassroomForm
+            open={isFormOpen}
+            onClose={handleCloseForm}
+            classroom={selectedClassroom}
+            onSuccess={loadClassrooms}
+          />
+        </ContentWrapper>
       </Container>
-    </Box>
+    </StyledBackground>
   );
 }
