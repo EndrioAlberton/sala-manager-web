@@ -26,14 +26,23 @@ export const authService = {
         }
     },
 
-    async logout(): Promise<void> {
+    logout(): void {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
     },
 
-    isAuthenticated: () => {
+    isAuthenticated(): boolean {
         const token = localStorage.getItem('token');
-        return !!token;
+        if (!token) return false;
+        
+        try {
+            // Verifica se o token é válido
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const exp = payload.exp * 1000; // Converte para milissegundos
+            return Date.now() < exp;
+        } catch {
+            return false;
+        }
     },
 
     getCurrentUser(): User | null {
@@ -41,7 +50,7 @@ export const authService = {
         return userStr ? JSON.parse(userStr) : null;
     },
 
-    getToken: () => {
+    getToken(): string | null {
         return localStorage.getItem('token');
     },
 

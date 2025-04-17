@@ -5,6 +5,9 @@ import CssBaseline from '@mui/material/CssBaseline'
 import App from './App'
 import './index.css'
 
+// Limpa o localStorage ao iniciar a aplicação
+localStorage.clear()
+
 const theme = createTheme({
   palette: {
     primary: {
