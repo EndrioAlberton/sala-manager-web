@@ -31,7 +31,7 @@ export function Login() {
 
         try {
             await authService.login(formData);
-            navigate('/dashboard');
+            navigate('/classrooms');
         } catch (err: any) {
             setError(err.message);
         } finally {

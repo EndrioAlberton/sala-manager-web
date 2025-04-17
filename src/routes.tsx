@@ -23,11 +23,15 @@ export const router = createBrowserRouter([
         element: <Register />
     },
     {
-        path: '/dashboard',
+        path: '/classrooms',
         element: (
             <PrivateRoute>
                 <Dashboard />
             </PrivateRoute>
         )
+    },
+    {
+        path: '/dashboard',
+        element: <Navigate to="/classrooms" replace />
     }
 ]); 
