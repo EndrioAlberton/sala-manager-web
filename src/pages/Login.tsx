@@ -29,11 +29,27 @@ export function Login() {
         setError('');
         setLoading(true);
 
+        // Validação básica
+        if (!formData.email) {
+            setError('Por favor, informe seu e-mail');
+            setLoading(false);
+            return;
+        }
+
+        if (!formData.password) {
+            setError('Por favor, informe sua senha');
+            setLoading(false);
+            return;
+        }
+
         try {
+            console.log('Tentando login com:', { email: formData.email });
             await authService.login(formData);
+            console.log('Login bem-sucedido, redirecionando...');
             navigate('/classrooms');
         } catch (err: any) {
-            setError(err.message);
+            console.error('Erro durante login:', err);
+            setError(err.message || 'Erro ao fazer login. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -65,6 +81,7 @@ export function Login() {
                             value={formData.email}
                             onChange={handleChange}
                             className="hover-scale"
+                            placeholder="Seu e-mail"
                         />
 
                         <Input
@@ -76,6 +93,7 @@ export function Login() {
                             value={formData.password}
                             onChange={handleChange}
                             className="hover-scale"
+                            placeholder="Sua senha"
                         />
 
                         <div>
@@ -95,6 +113,34 @@ export function Login() {
                             >
                                 Não tem uma conta? Registre-se
                             </a>
+                        </div>
+                        
+                        <div className="text-center mt-4">
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        setLoading(true);
+                                        await authService.register({
+                                            name: "Usuário Teste",
+                                            email: "teste@example.com",
+                                            password: "senha123"
+                                        });
+                                        setFormData({
+                                            email: "teste@example.com",
+                                            password: "senha123"
+                                        });
+                                        setError("Usuário de teste criado! Tente fazer login agora.");
+                                    } catch (err: any) {
+                                        setError("Erro ao criar usuário de teste: " + err.message);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                                Criar usuário de teste
+                            </button>
                         </div>
                     </form>
                 </Card>

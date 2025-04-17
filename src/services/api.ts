@@ -8,7 +8,9 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: false,
+  timeout: 10000
 });
 
 //adicionar o token em todas as requisições
