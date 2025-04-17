@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
+import { UserType } from '../types/User';
 
 const API_BASE_URL = 'http://localhost:3000';
 
@@ -162,6 +163,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // opcional pois não é retornado nas consultas
+  userType: UserType;
 }
 
 export interface LoginCredentials {

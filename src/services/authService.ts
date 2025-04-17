@@ -1,5 +1,6 @@
 import api from './api';
 import { User, LoginCredentials, AuthResponse } from './api';
+import { UserType } from '../types/User';
 
 export const authService = {
     async register(userData: Omit<User, 'id'>): Promise<User> {
@@ -72,12 +73,33 @@ export const authService = {
     },
 
     getCurrentUser(): User | null {
-        const userStr = localStorage.getItem('user');
-        return userStr ? JSON.parse(userStr) : null;
+        const userString = localStorage.getItem('user');
+        if (!userString) return null;
+        
+        try {
+            const user = JSON.parse(userString);
+            // Converter userType para o enum correto
+            return {
+                ...user,
+                userType: user.userType as UserType
+            };
+        } catch {
+            return null;
+        }
     },
 
     getToken(): string | null {
         return localStorage.getItem('token');
+    },
+
+    isProfessor(): boolean {
+        const user = this.getCurrentUser();
+        return user?.userType === UserType.PROFESSOR;
+    },
+
+    isAdmin(): boolean {
+        const user = this.getCurrentUser();
+        return user?.userType === UserType.ADMIN;
     },
 
     _handleError(error: any): Error {

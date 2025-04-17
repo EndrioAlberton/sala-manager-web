@@ -25,6 +25,7 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { classroomService, occupationService } from '../services/api';
 import { OccupationForm } from './OccupationForm';
+import { authService } from '../services/authService';
 
 interface ClassroomCardProps {
   classroom: ClassRoom & {
@@ -50,6 +51,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
   const [isOccupationFormOpen, setIsOccupationFormOpen] = useState(false);
   const [isOccupationsDialogOpen, setIsOccupationsDialogOpen] = useState(false);
   const [occupations, setOccupations] = useState<Occupation[]>([]);
+  const isProfessor = authService.isProfessor();
 
   const loadOccupations = async () => {
     try {
@@ -234,16 +236,18 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         )}
 
         <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-          <Tooltip title="Ocupar sala">
-            <IconButton
-              size="small"
-              onClick={() => setIsOccupationFormOpen(true)}
-              disabled={isLoading}
-              color="success"
-            >
-              <PersonAddIcon />
-            </IconButton>
-          </Tooltip>
+          {isProfessor && (
+            <Tooltip title="Ocupar sala">
+              <IconButton
+                size="small"
+                onClick={() => setIsOccupationFormOpen(true)}
+                disabled={isLoading}
+                color="success"
+              >
+                <PersonAddIcon />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Ver ocupações">
             <IconButton
               size="small"

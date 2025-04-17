@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -16,6 +16,7 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
+import { authService } from '../services/authService';
 
 interface OccupationFormData {
   teacher: string;
@@ -44,10 +45,22 @@ const DAYS_OF_WEEK = [
 ];
 
 export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps) {
+  const currentUser = authService.getCurrentUser();
   const [formData, setFormData] = useState<Partial<OccupationFormData>>({
-    daysOfWeek: []
+    daysOfWeek: [],
+    teacher: currentUser?.name || ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (open) {
+      const user = authService.getCurrentUser();
+      setFormData(prev => ({
+        ...prev,
+        teacher: user?.name || ''
+      }));
+    }
+  }, [open]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -92,7 +105,10 @@ export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps)
   };
 
   const handleClose = () => {
-    setFormData({ daysOfWeek: [] });
+    setFormData({ 
+      daysOfWeek: [],
+      teacher: currentUser?.name || ''
+    });
     setErrors({});
     onClose();
   };
@@ -112,10 +128,13 @@ export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps)
             <TextField
               label="Professor"
               value={formData.teacher || ''}
-              onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
-              error={!!errors.teacher}
-              helperText={errors.teacher}
+              disabled
+              InputProps={{
+                readOnly: true,
+              }}
+              helperText="Professor atual logado no sistema"
             />
+            
             <TextField
               label="Disciplina"
               value={formData.subject || ''}
