@@ -3,10 +3,24 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { UserType } from '../types/User';
 
-const API_BASE_URL = 'http://localhost:3000';
+const LOCALHOST_URL = 'http://localhost:3000';
+const FALLBACK_URL = 'http://56.124.125.45:3000';
+
+async function testConnection(url: string): Promise<boolean> {
+  try {
+    await axios.get(`${url}/health`, { timeout: 2000 }); // Tenta acessar endpoint /health com timeout de 2s
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getApiBaseUrl(): Promise<string> {
+  const isLocalhostAvailable = await testConnection(LOCALHOST_URL);
+  return isLocalhostAvailable ? LOCALHOST_URL : FALLBACK_URL; // Usa localhost se disponível, senão usa o IP
+}
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
@@ -14,7 +28,11 @@ const api = axios.create({
   timeout: 10000
 });
 
-//adicionar o token em todas as requisições
+getApiBaseUrl().then((baseURL) => {
+  api.defaults.baseURL = baseURL;
+});
+
+// Adicionar token em todas as requisições
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -162,8 +180,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  password?: string; // opcional pois não é retornado nas consultas
-  userType?: UserType; // adicionado manualmente
+  password?: string; // Opcional pois não é retornado nas consultas
+  userType?: UserType; // Adicionado manualmente
 }
 
 export interface LoginCredentials {
@@ -176,4 +194,4 @@ export interface AuthResponse {
   token: string;
 }
 
-export default api; 
+export default api;
