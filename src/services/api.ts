@@ -163,7 +163,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // opcional pois não é retornado nas consultas
-  userType: UserType;
+  userType?: UserType; // adicionado manualmente
 }
 
 export interface LoginCredentials {

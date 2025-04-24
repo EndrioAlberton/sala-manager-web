@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -10,7 +10,6 @@ import {
   MenuItem, 
   Box, 
   Container,
-  Popover,
   Divider
 } from '@mui/material';
 import { authService } from '../services/authService';

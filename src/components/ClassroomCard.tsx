@@ -6,7 +6,6 @@ import {
   Box, 
   IconButton, 
   Tooltip, 
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -23,7 +22,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
-import { classroomService, occupationService } from '../services/api';
+import { occupationService } from '../services/api';
 import { OccupationForm } from './OccupationForm';
 import { authService } from '../services/authService';
 
