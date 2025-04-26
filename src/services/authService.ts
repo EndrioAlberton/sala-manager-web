@@ -14,15 +14,12 @@ export const authService = {
 
     async login(credentials: LoginCredentials): Promise<AuthResponse> {
         try {
-            console.log('Tentando login com:', { email: credentials.email, senha: '******' });
             
             // Garantir que estamos enviando email e senha
             if (!credentials.email || !credentials.password) {
                 throw new Error('E-mail e senha são obrigatórios');
             }
-            
-            console.log('Enviando requisição para /users/login');
-            
+                        
             // Usar diretamente o axios para evitar problemas com interceptors
             const response = await api.post<AuthResponse>('/users/login', {
                 email: credentials.email,
@@ -32,9 +29,7 @@ export const authService = {
                     'Content-Type': 'application/json'
                 }
             });
-            
-            console.log('Resposta recebida:', { status: response.status, temToken: !!response.data.token });
-            
+                        
             const { token, user } = response.data;
             
             // Armazenar dados do usuário e token
@@ -44,11 +39,9 @@ export const authService = {
             localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify(user));
             
-            console.log('Login bem-sucedido! Token armazenado:', token.substring(0, 10) + '...');
             
             return response.data;
         } catch (error: any) {
-            console.log('Erro no login:', error);
             throw this._handleError(error);
         }
     },
@@ -60,10 +53,8 @@ export const authService = {
 
     isAuthenticated(): boolean {
         const token = localStorage.getItem('token');
-        console.log('Verificando token:', token ? `${token.substring(0, 10)}...` : 'nenhum');
         
         if (!token) {
-            console.log('Nenhum token encontrado');
             return false;
         }
         
@@ -103,11 +94,8 @@ export const authService = {
     },
 
     _handleError(error: any): Error {
-        console.log('Erro completo:', error);
         
         if (error.response) {
-            console.log('Resposta do servidor:', error.response.data);
-            console.log('Status:', error.response.status);
             
             // Mensagens de erro específicas da API
             if (error.response.data && error.response.data.message) {
@@ -132,11 +120,9 @@ export const authService = {
                     return new Error(`Erro inesperado (${error.response.status})`);
             }
         } else if (error.request) {
-            console.log('Sem resposta do servidor:', error.request);
             return new Error('Sem resposta do servidor. Verifique sua conexão.');
         }
         
-        console.log('Erro de configuração:', error.message);
         return new Error(`Erro na conexão: ${error.message}`);
     }
 }; 
