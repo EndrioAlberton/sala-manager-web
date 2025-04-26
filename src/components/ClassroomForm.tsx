@@ -82,9 +82,6 @@ export function ClassroomForm({ open, onClose, classroom, onSuccess }: Classroom
       onClose();
       reset();
     } catch (err: any) {
-      console.error('Erro ao enviar dados:', err.response?.data || err);
-      console.log('Editando sala com ID:', classroom?.id);
-      console.log('Dados enviados:', JSON.stringify(data, null, 2));
       setError(err.response?.data?.message || 'Erro ao salvar sala. Tente novamente.');
     } finally {
       setIsLoading(false);

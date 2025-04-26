@@ -38,7 +38,6 @@ const api = axios.create({
 
 getApiBaseUrl().then((baseURL) => {
   api.defaults.baseURL = baseURL;
-  console.log(`API Base URL set to: ${baseURL}`);
 });
 
 // Adicionar token em todas as requisições
