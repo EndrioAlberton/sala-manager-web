@@ -73,16 +73,12 @@ export function Login() {
         }
 
         try {
-            
-            // Verificar se está autenticado antes de redirecionar
-            if (authService.isAuthenticated()) {
-                navigate('/classrooms', { replace: true });
-            } else {
-                setError('Erro de autenticação. Tente novamente.');
-            }
+            // Chamar o método de login
+            await authService.login({ email: formData.email, password: formData.password });
+            navigate('/classrooms', { replace: true });
         } catch (err: any) {
             console.error('Erro durante login:', err);
-            setError(err.message || 'Erro ao fazer login. Tente novamente.');
+            setError(err.message || 'Erro de autenticação. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -171,4 +167,4 @@ export function Login() {
             </Container>
         </StyledBackground>
     );
-} 
+}
