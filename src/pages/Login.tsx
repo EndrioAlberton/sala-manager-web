@@ -73,16 +73,11 @@ export function Login() {
         }
 
         try {
-            console.log('Tentando login com:', { email: formData.email });
-            const response = await authService.login(formData);
-            console.log('Login bem-sucedido, token:', response.token.substring(0, 10) + '...');
             
             // Verificar se está autenticado antes de redirecionar
             if (authService.isAuthenticated()) {
-                console.log('Usuário autenticado, redirecionando...');
                 navigate('/classrooms', { replace: true });
             } else {
-                console.log('Falha na autenticação após login.');
                 setError('Erro de autenticação. Tente novamente.');
             }
         } catch (err: any) {
