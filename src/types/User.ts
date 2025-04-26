@@ -1,7 +1,7 @@
 export enum UserType {
-    ALUNO = 'aluno',
-    PROFESSOR = 'professor',
-    ADMIN = 'admin'
+    ALUNO = 'ALUNO',
+    PROFESSOR = 'PROFESSOR',
+    ADMIN = 'ADMIN'
 }
 
 export interface User {
