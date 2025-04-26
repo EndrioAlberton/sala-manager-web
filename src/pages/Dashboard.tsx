@@ -227,13 +227,13 @@ export function Dashboard() {
         </Box>
         
         <ContentWrapper>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, '@media (max-width: 600px)': { flexDirection: 'column', alignItems: 'flex-start', },}}>
             <Chip 
               label={format(currentDateTime, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               color="primary"
               variant="outlined"
             />
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, width: { xs: '100%', sm: 'auto' }}}>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
