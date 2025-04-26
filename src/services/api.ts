@@ -3,32 +3,11 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { UserType } from '../types/User';
 
-const LOCALHOST_URL = 'http://localhost:3000';
-const IP_URL = 'https://api-sala.endrioalberton.com.br';
-const HEALTH_URL = 'api-sala.endrioalberton.com.br/health'; 
-
-async function testConnection(url: string): Promise<boolean> {
-  try {
-    const healthUrl = url === IP_URL ? HEALTH_URL : `${url}/health`; 
-    await axios.get(healthUrl, { timeout: 2000 });
-    return true;
-  } catch (error) {
-    console.error(`Failed to connect to ${url}:`, error);
-    return false;
-  }
-}
-
-async function getApiBaseUrl(): Promise<string> {
-  const isIpAvailable = await testConnection(IP_URL);
-  if (isIpAvailable) {
-    return IP_URL;
-  }
-
-  const isLocalhostAvailable = await testConnection(LOCALHOST_URL);
-  return isLocalhostAvailable ? LOCALHOST_URL : IP_URL;
-}
+//const API_URL = 'http://localhost:3000';
+const API_URL= 'https://api-sala.endrioalberton.com.br';
 
 const api = axios.create({
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   },
@@ -36,8 +15,13 @@ const api = axios.create({
   timeout: 10000
 });
 
-getApiBaseUrl().then((baseURL) => {
-  api.defaults.baseURL = baseURL;
+// Adicionar token em todas as requisições
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // Adicionar token em todas as requisições
@@ -189,7 +173,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Opcional pois não é retornado nas consultas
-  userType?: UserType; // Adicionado manualmente
+  userType: UserType; // Adicionado manualmente
 }
 
 export interface LoginCredentials {

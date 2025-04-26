@@ -13,6 +13,7 @@ import {
   Link,
   styled
 } from '@mui/material';
+import { UserType } from '../types/User';
 
 // Componente estilizado para o fundo da página
 const StyledBackground = styled(Box)(({ theme }) => ({
@@ -44,7 +45,8 @@ export function Register() {
     const [formData, setFormData] = useState<Omit<User, 'id'>>({
         name: '',
         email: '',
-        password: ''
+        password: '',
+        userType: UserType.ALUNO
     }); 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +63,13 @@ export function Register() {
         setLoading(true);
 
         try {
-            await authService.register(formData);
+            const userData = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                userType: UserType.ALUNO // Valor fixo ou de um select
+            };
+            await authService.register(userData);
             navigate('/login');
         } catch (err: any) {
             setError(err.message);
