@@ -173,7 +173,7 @@ export interface User {
   name: string;
   email: string;
   password?: string; // Opcional pois não é retornado nas consultas
-  userType: UserType; // Adicionado manualmente
+  userType?: UserType; // Adicionado automaticamente como ALUNO
 }
 
 export interface LoginCredentials {

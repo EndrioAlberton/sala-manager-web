@@ -166,34 +166,6 @@ export function Login() {
                                 Não tem uma conta? Registre-se
                             </Link>
                         </Box>
-                        
-                        <Box sx={{ mt: 3, textAlign: 'center' }}>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={async () => {
-                                    try {
-                                        setLoading(true);
-                                        await authService.register({
-                                            name: "Usuário Teste",
-                                            email: "teste@example.com",
-                                            password: "senha123"
-                                        });
-                                        setFormData({
-                                            email: "teste@example.com",
-                                            password: "senha123"
-                                        });
-                                        setError("Usuário de teste criado! Tente fazer login agora.");
-                                    } catch (err: any) {
-                                        setError("Erro ao criar usuário de teste: " + err.message);
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
-                            >
-                                Criar usuário de teste
-                            </Button>
-                        </Box>
                     </form>
                 </FormCard>
             </Container>
