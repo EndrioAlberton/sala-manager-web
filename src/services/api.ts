@@ -4,20 +4,28 @@ import { Occupation } from '../types/Occupation';
 import { UserType } from '../types/User';
 
 const LOCALHOST_URL = 'http://localhost:3000';
-const FALLBACK_URL = 'http://56.124.125.45:3000';
+const IP_URL = 'https://api-sala.endrioalberton.com.br';
+const HEALTH_URL = 'api-sala.endrioalberton.com.br/health'; 
 
 async function testConnection(url: string): Promise<boolean> {
   try {
-    await axios.get(`${url}/health`, { timeout: 2000 }); // Tenta acessar endpoint /health com timeout de 2s
+    const healthUrl = url === IP_URL ? HEALTH_URL : `${url}/health`; 
+    await axios.get(healthUrl, { timeout: 2000 });
     return true;
-  } catch {
+  } catch (error) {
+    console.error(`Failed to connect to ${url}:`, error);
     return false;
   }
 }
 
 async function getApiBaseUrl(): Promise<string> {
+  const isIpAvailable = await testConnection(IP_URL);
+  if (isIpAvailable) {
+    return IP_URL;
+  }
+
   const isLocalhostAvailable = await testConnection(LOCALHOST_URL);
-  return isLocalhostAvailable ? LOCALHOST_URL : FALLBACK_URL; // Usa localhost se disponível, senão usa o IP
+  return isLocalhostAvailable ? LOCALHOST_URL : IP_URL;
 }
 
 const api = axios.create({
@@ -30,6 +38,7 @@ const api = axios.create({
 
 getApiBaseUrl().then((baseURL) => {
   api.defaults.baseURL = baseURL;
+  console.log(`API Base URL set to: ${baseURL}`);
 });
 
 // Adicionar token em todas as requisições
