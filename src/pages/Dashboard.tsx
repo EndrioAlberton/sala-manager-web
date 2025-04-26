@@ -235,10 +235,15 @@ export function Dashboard() {
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, width: { xs: '100%', sm: 'auto' }}}>
               <Button
-                variant="contained"
+                variant="outlined"
+                color="primary"
                 startIcon={<AddIcon />}
                 onClick={() => handleOpenForm()}
                 size="small"
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white', 
+                }}
               >
                 Nova Sala
               </Button>

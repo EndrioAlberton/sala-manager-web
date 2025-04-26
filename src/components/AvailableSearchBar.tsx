@@ -148,6 +148,18 @@ export function AvailableSearchBar({
 
         {/* Botões de ação */}
         <Stack direction="row" spacing={1} sx={{ ml: { xs: 0, md: 'auto' } }}>
+        <Button 
+            variant="outlined" 
+            color="primary"
+            onClick={onSearch}
+            size="small"
+            sx={{
+              backgroundColor: 'primary.main',
+              color: 'white', 
+            }}
+          >
+            Buscar
+          </Button>
           <Button 
             variant="outlined" 
             color="secondary"
@@ -155,14 +167,6 @@ export function AvailableSearchBar({
             size="small"
           >
             Limpar
-          </Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={onSearch}
-            size="small"
-          >
-            Buscar
           </Button>
         </Stack>
       </Box>
