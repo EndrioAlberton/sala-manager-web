@@ -14,7 +14,6 @@ import {
   Link,
   styled
 } from '@mui/material';
-import { UserType } from '../types/User';
 import { registerSchema, RegisterFormData } from '../schemas/userSchema';
 
 // Componente estilizado para o fundo da página

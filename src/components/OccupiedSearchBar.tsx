@@ -1,4 +1,3 @@
-import React from 'react';
 import { Paper, TextField, InputAdornment, IconButton, Box, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
