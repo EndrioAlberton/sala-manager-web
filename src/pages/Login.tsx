@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { authService } from '../services/authService';
-import { LoginCredentials } from '../services/api';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Alert } from '../components/Alert';
@@ -13,6 +14,7 @@ import {
   Link,
   styled
 } from '@mui/material';
+import { loginSchema, LoginFormData } from '../schemas/userSchema';
 
 // Componente estilizado para o fundo da página
 const StyledBackground = styled(Box)(({ theme }) => ({
@@ -41,40 +43,21 @@ export function Login() {
     const navigate = useNavigate();
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<LoginCredentials>({
-        email: '',
-        password: ''
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema)
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: LoginFormData) => {
         setError('');
         setLoading(true);
 
-        // Validação básica
-        if (!formData.email) {
-            setError('Por favor, informe seu e-mail');
-            setLoading(false);
-            return;
-        }
-
-        if (!formData.password) {
-            setError('Por favor, informe sua senha');
-            setLoading(false);
-            return;
-        }
-
         try {
-            // Chamar o método de login
-            await authService.login({ email: formData.email, password: formData.password });
+            await authService.login(data);
             navigate('/classrooms', { replace: true });
         } catch (err: any) {
             console.error('Erro durante login:', err);
@@ -107,29 +90,23 @@ export function Login() {
                         </Typography>
                     </Box>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         {error && <Alert message={error} />}
                         
                         <Input
-                            id="email"
-                            name="email"
-                            type="email"
                             label="Email"
-                            required
-                            value={formData.email}
-                            onChange={handleChange}
+                            type="email"
+                            error={errors.email?.message}
+                            {...register('email')}
                             placeholder="Seu e-mail"
                             fullWidth
                         />
 
                         <Input
-                            id="password"
-                            name="password"
-                            type="password"
                             label="Senha"
-                            required
-                            value={formData.password}
-                            onChange={handleChange}
+                            type="password"
+                            error={errors.password?.message}
+                            {...register('password')}
                             placeholder="Sua senha"
                             fullWidth
                         />

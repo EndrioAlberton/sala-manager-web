@@ -13,18 +13,23 @@ export const Input: React.FC<InputProps> = ({ label, error, className, ...props 
                 variant="outlined"
                 label={label}
                 error={!!error}
-                helperText={error}
+                helperText={error || ' '}
                 fullWidth
                 InputLabelProps={{
                     shrink: true,
                 }}
                 sx={{
-                    mb: 1,
                     '& .MuiOutlinedInput-root': {
                         '&:hover fieldset': {
                             borderColor: error ? 'error.main' : 'primary.main',
                         },
                     },
+                    mb: 0,
+                    '& .MuiFormHelperText-root': {
+                        minHeight: '1.25rem',
+                        m: 0,
+                        mt: 0.5
+                    }
                 }}
                 className={className}
                 {...props as any}

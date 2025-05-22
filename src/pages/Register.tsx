@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { authService } from '../services/authService';
-import { User } from '../services/api';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Alert } from '../components/Alert';
@@ -14,6 +15,7 @@ import {
   styled
 } from '@mui/material';
 import { UserType } from '../types/User';
+import { registerSchema, RegisterFormData } from '../schemas/userSchema';
 
 // Componente estilizado para o fundo da página
 const StyledBackground = styled(Box)(({ theme }) => ({
@@ -42,34 +44,21 @@ export function Register() {
     const navigate = useNavigate();
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<Omit<User, 'id'>>({
-        name: '',
-        email: '',
-        password: '',
-        userType: UserType.ALUNO
-    }); 
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema)
+    });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: RegisterFormData) => {
         setError('');
         setLoading(true);
 
         try {
-            const userData = {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                userType: UserType.ALUNO // Valor fixo ou de um select
-            };
-            await authService.register(userData);
+            await authService.register(data);
             navigate('/login');
         } catch (err: any) {
             setError(err.message);
@@ -101,41 +90,31 @@ export function Register() {
                         </Typography>
                     </Box>
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit(onSubmit)} noValidate>
                         {error && <Alert message={error} />}
 
                         <Input
-                            id="name"
-                            name="name"
-                            type="text"
-                            label="Nome completo"
-                            required
-                            value={formData.name}
-                            onChange={handleChange}
+                            label="Nome"
+                            error={errors.name?.message}
+                            {...register('name')}
                             placeholder="Seu nome completo"
                             fullWidth
                         />
 
                         <Input
-                            id="email"
-                            name="email"
-                            type="email"
                             label="Email"
-                            required
-                            value={formData.email}
-                            onChange={handleChange}
+                            type="email"
+                            error={errors.email?.message}
+                            {...register('email')}
                             placeholder="Seu e-mail"
                             fullWidth
                         />
 
                         <Input
-                            id="password"
-                            name="password"
-                            type="password"
                             label="Senha"
-                            required
-                            value={formData.password}
-                            onChange={handleChange}
+                            type="password"
+                            error={errors.password?.message}
+                            {...register('password')}
                             placeholder="Sua senha"
                             fullWidth
                         />
