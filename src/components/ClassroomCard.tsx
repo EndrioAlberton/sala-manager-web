@@ -51,6 +51,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
   const [isOccupationsDialogOpen, setIsOccupationsDialogOpen] = useState(false);
   const [occupations, setOccupations] = useState<Occupation[]>([]);
   const isProfessor = authService.isProfessor();
+  const isAdmin = authService.isAdmin();
 
   const loadOccupations = async () => {
     try {
@@ -164,31 +165,33 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
           <Typography variant="h6">
             Sala {classroom.roomNumber}
           </Typography>
-          <Box>
-            <Tooltip title={classroom.currentOccupation ? "Não é possível editar uma sala ocupada" : "Editar"}>
-              <span>
-                <IconButton 
-                  size="small" 
-                  onClick={handleEdit}
-                  disabled={!!classroom.currentOccupation || isLoading}
-                  sx={{ mr: 1 }}
-                >
-                  <EditIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip title={classroom.currentOccupation ? "Não é possível deletar uma sala ocupada" : "Deletar"}>
-              <span>
-                <IconButton 
-                  size="small" 
-                  onClick={handleDelete}
-                  disabled={!!classroom.currentOccupation || isLoading}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </Box>
+          {isAdmin && (
+            <Box>
+              <Tooltip title={classroom.currentOccupation ? "Não é possível editar uma sala ocupada" : "Editar"}>
+                <span>
+                  <IconButton 
+                    size="small" 
+                    onClick={handleEdit}
+                    disabled={!!classroom.currentOccupation || isLoading}
+                    sx={{ mr: 1 }}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={classroom.currentOccupation ? "Não é possível deletar uma sala ocupada" : "Deletar"}>
+                <span>
+                  <IconButton 
+                    size="small" 
+                    onClick={handleDelete}
+                    disabled={!!classroom.currentOccupation || isLoading}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
+          )}
         </Box>
 
         <Typography color="textSecondary" gutterBottom>

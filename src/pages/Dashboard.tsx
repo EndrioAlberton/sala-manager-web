@@ -64,6 +64,7 @@ export function Dashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClassroom, setSelectedClassroom] = useState<ClassRoom | undefined>();
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const isAdmin = authService.isAdmin();
 
   const handleLogout = () => {
     authService.logout();
@@ -234,19 +235,21 @@ export function Dashboard() {
               variant="outlined"
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, width: { xs: '100%', sm: 'auto' }}}>
-              <Button
-                variant="outlined"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenForm()}
-                size="small"
-                sx={{
-                  backgroundColor: 'primary.main',
-                  color: 'white', 
-                }}
-              >
-                Nova Sala
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenForm()}
+                  size="small"
+                  sx={{
+                    backgroundColor: 'primary.main',
+                    color: 'white', 
+                  }}
+                >
+                  Nova Sala
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 color="secondary"
