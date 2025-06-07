@@ -3,8 +3,8 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { UserType } from '../types/User';
 
-//const API_URL = 'http://localhost:3000';
-const API_URL= 'https://api-sala.endrioalberton.com.br';
+const API_URL = 'http://localhost:3000';
+//const API_URL= 'https://api-sala.endrioalberton.com.br';
 
 const api = axios.create({
   baseURL: API_URL,

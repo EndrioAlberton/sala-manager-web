@@ -6,16 +6,17 @@ import {
   TextField, 
   FormControl,
   FormGroup,
-  FormControlLabel,
-  Checkbox,
   Button,
   DialogActions,
   Alert,
-  Typography
+  Typography,
+  Box,
+  Chip
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { authService } from '../services/authService';
 
 interface OccupationFormData {
@@ -35,13 +36,13 @@ interface OccupationFormProps {
 }
 
 const DAYS_OF_WEEK = [
+  { value: 0, label: 'Domingo' },
   { value: 1, label: 'Segunda' },
   { value: 2, label: 'Terça' },
   { value: 3, label: 'Quarta' },
   { value: 4, label: 'Quinta' },
   { value: 5, label: 'Sexta' },
   { value: 6, label: 'Sábado' },
-  { value: 0, label: 'Domingo' },
 ];
 
 export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps) {
@@ -81,12 +82,22 @@ export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps)
       newErrors.endDate = 'Data final é obrigatória';
     }
 
+    if (formData.startDate && formData.endDate && new Date(formData.startDate) > new Date(formData.endDate)) {
+      newErrors.startDate = 'Data inicial deve ser anterior à data final';
+      newErrors.endDate = 'Data final deve ser posterior à data inicial';
+    }
+
     if (!formData.startTime) {
       newErrors.startTime = 'Horário inicial é obrigatório';
     }
 
     if (!formData.endTime) {
       newErrors.endTime = 'Horário final é obrigatório';
+    }
+
+    if (formData.startTime && formData.endTime && formData.startTime >= formData.endTime) {
+      newErrors.startTime = 'Horário inicial deve ser anterior ao horário final';
+      newErrors.endTime = 'Horário final deve ser posterior ao horário inicial';
     }
 
     if (!formData.daysOfWeek?.length) {
@@ -117,7 +128,7 @@ export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps)
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Ocupar Sala</DialogTitle>
       <DialogContent>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
           <FormControl fullWidth sx={{ gap: 2, mt: 2 }}>
             {Object.keys(errors).length > 0 && (
               <Alert severity="error" sx={{ mb: 2 }}>
@@ -142,89 +153,118 @@ export function OccupationForm({ open, onClose, onSubmit }: OccupationFormProps)
               error={!!errors.subject}
               helperText={errors.subject}
             />
-            <DatePicker
-              label="Data Inicial"
-              value={formData.startDate ? new Date(formData.startDate) : null}
-              onChange={(date: Date | null) => setFormData({ 
-                ...formData, 
-                startDate: date?.toISOString() 
-              })}
-              format="dd/MM/yyyy"
-              slotProps={{
-                textField: {
-                  error: !!errors.startDate,
-                  helperText: errors.startDate
-                }
-              }}
-            />
-            <DatePicker
-              label="Data Final"
-              value={formData.endDate ? new Date(formData.endDate) : null}
-              onChange={(date: Date | null) => setFormData({ 
-                ...formData, 
-                endDate: date?.toISOString() 
-              })}
-              format="dd/MM/yyyy"
-              slotProps={{
-                textField: {
-                  error: !!errors.endDate,
-                  helperText: errors.endDate
-                }
-              }}
-            />
-            <TimePicker
-              label="Horário Inicial"
-              value={formData.startTime ? new Date(`1970-01-01T${formData.startTime}`) : null}
-              onChange={(time: Date | null) => setFormData({ 
-                ...formData, 
-                startTime: time ? format(time, 'HH:mm') : undefined
-              })}
-              ampm={false}
-              slotProps={{
-                textField: {
-                  error: !!errors.startTime,
-                  helperText: errors.startTime
-                }
-              }}
-            />
-            <TimePicker
-              label="Horário Final"
-              value={formData.endTime ? new Date(`1970-01-01T${formData.endTime}`) : null}
-              onChange={(time: Date | null) => setFormData({ 
-                ...formData, 
-                endTime: time ? format(time, 'HH:mm') : undefined
-              })}
-              ampm={false}
-              slotProps={{
-                textField: {
-                  error: !!errors.endTime,
-                  helperText: errors.endTime
-                }
-              }}
-            />
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <DatePicker
+                label="Data Inicial"
+                value={formData.startDate ? new Date(formData.startDate) : null}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    date.setHours(0, 0, 0, 0);
+                    setFormData({ 
+                      ...formData, 
+                      startDate: date.toISOString(),
+                      endDate: (!formData.endDate || new Date(formData.endDate) < date) 
+                        ? date.toISOString() 
+                        : formData.endDate
+                    });
+                  }
+                }}
+                format="dd/MM/yyyy"
+                slotProps={{
+                  textField: {
+                    error: !!errors.startDate,
+                    helperText: errors.startDate,
+                    fullWidth: true
+                  }
+                }}
+              />
+              
+              <DatePicker
+                label="Data Final"
+                value={formData.endDate ? new Date(formData.endDate) : null}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    date.setHours(0, 0, 0, 0);
+                    setFormData({ 
+                      ...formData, 
+                      endDate: date.toISOString() 
+                    });
+                  }
+                }}
+                format="dd/MM/yyyy"
+                minDate={formData.startDate ? new Date(formData.startDate) : undefined}
+                slotProps={{
+                  textField: {
+                    error: !!errors.endDate,
+                    helperText: errors.endDate,
+                    fullWidth: true
+                  }
+                }}
+              />
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TimePicker
+                label="Horário Inicial"
+                value={formData.startTime ? new Date(`1970-01-01T${formData.startTime}`) : null}
+                onChange={(time: Date | null) => {
+                  setFormData({ 
+                    ...formData, 
+                    startTime: time ? format(time, 'HH:mm') : undefined,
+                    endTime: !formData.endTime ? (time ? format(time, 'HH:mm') : undefined) : formData.endTime
+                  });
+                }}
+                ampm={false}
+                slotProps={{
+                  textField: {
+                    error: !!errors.startTime,
+                    helperText: errors.startTime,
+                    fullWidth: true
+                  }
+                }}
+              />
+              
+              <TimePicker
+                label="Horário Final"
+                value={formData.endTime ? new Date(`1970-01-01T${formData.endTime}`) : null}
+                onChange={(time: Date | null) => setFormData({ 
+                  ...formData, 
+                  endTime: time ? format(time, 'HH:mm') : undefined
+                })}
+                ampm={false}
+                slotProps={{
+                  textField: {
+                    error: !!errors.endTime,
+                    helperText: errors.endTime,
+                    fullWidth: true
+                  }
+                }}
+              />
+            </Box>
+            
             <FormGroup>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Dias da Semana
               </Typography>
-              {DAYS_OF_WEEK.map(day => (
-                <FormControlLabel
-                  key={day.value}
-                  control={
-                    <Checkbox
-                      checked={formData.daysOfWeek?.includes(day.value)}
-                      onChange={(e) => {
-                        const newDays = e.target.checked
-                          ? [...(formData.daysOfWeek || []), day.value]
-                          : formData.daysOfWeek?.filter(d => d !== day.value);
-                        setFormData({ ...formData, daysOfWeek: newDays });
-                      }}
-                    />
-                  }
-                  label={day.label}
-                />
-              ))}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {DAYS_OF_WEEK.map(day => (
+                  <Chip
+                    key={day.value}
+                    label={day.label}
+                    onClick={() => {
+                      const newDays = formData.daysOfWeek?.includes(day.value)
+                        ? formData.daysOfWeek.filter(d => d !== day.value)
+                        : [...(formData.daysOfWeek || []), day.value];
+                      setFormData({ ...formData, daysOfWeek: newDays });
+                    }}
+                    color={formData.daysOfWeek?.includes(day.value) ? "primary" : "default"}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Box>
               {errors.daysOfWeek && (
-                <Typography color="error" variant="caption">
+                <Typography color="error" variant="caption" sx={{ mt: 1 }}>
                   {errors.daysOfWeek}
                 </Typography>
               )}

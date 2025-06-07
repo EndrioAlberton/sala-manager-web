@@ -1,14 +1,12 @@
 export interface ClassRoom {
   id: number;
   roomNumber: string;
-  floor: number;
   building: string;
+  floor: number;
+  maxStudents: number;
   desks: number;
   chairs: number;
   computers?: number;
   hasProjector: boolean;
-  maxStudents: number;
-  isOccupied: boolean;
-  currentTeacher?: string;
-  currentSubject?: string;
+  isActive: boolean;
 } 

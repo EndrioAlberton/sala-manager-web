@@ -1,11 +1,11 @@
 import { useState, useEffect, Fragment } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Box, 
-  IconButton, 
-  Tooltip, 
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,16 +20,14 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import EventIcon from '@mui/icons-material/Event';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { OccupationForm } from './OccupationForm';
 import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
-import { occupationService } from '../services/api';
-import { OccupationForm } from './OccupationForm';
 import { authService } from '../services/authService';
+import { occupationService } from '../services/api';
 
 interface ClassroomCardProps {
-  classroom: ClassRoom & {
-    currentOccupation?: Occupation;
-  };
+  classroom: ClassRoom & { currentOccupation?: Occupation };
   onEdit: (classroom: ClassRoom) => void;
   onDelete: (classroom: ClassRoom) => void;
   onRefresh: () => void;
@@ -132,12 +130,44 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
     }
   };
 
-  const formatOccupationPeriod = (occupation: Occupation) => {
-    const startDate = format(new Date(occupation.startDate), 'dd/MM/yyyy', { locale: ptBR });
-    const endDate = format(new Date(occupation.endDate), 'dd/MM/yyyy', { locale: ptBR });
-    const days = occupation.daysOfWeek.map(day => DAYS_MAP[day as keyof typeof DAYS_MAP]).join(', ');
+  const groupOccupations = (occupations: Occupation[]): Occupation[][] => {
+    const groups: Record<string, Occupation[]> = {};
     
-    return `${startDate} até ${endDate}\n${occupation.startTime} às ${occupation.endTime}\n${days}`;
+    occupations.forEach(occupation => {
+      const key = `${occupation.teacher}-${occupation.subject}-${occupation.startTime}-${occupation.endTime}`;
+      if (!groups[key]) {
+        groups[key] = [];
+      }
+      groups[key].push(occupation);
+    });
+
+    return Object.values(groups);
+  };
+
+  const formatOccupationPeriod = (occupations: Occupation[]) => {
+    if (occupations.length === 0) return '';
+
+    const firstOccupation = occupations[0];
+    const dates = occupations
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+    const startDate = format(new Date(dates[0].startDate), 'dd/MM/yyyy', { locale: ptBR });
+    const endDate = format(new Date(dates[dates.length - 1].startDate), 'dd/MM/yyyy', { locale: ptBR });
+    
+    if (dates.length === 1) {
+      const dayOfWeek = DAYS_MAP[dates[0].daysOfWeek[0] as keyof typeof DAYS_MAP];
+      return `${startDate} (${dayOfWeek}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
+    }
+
+    const uniqueDays = Array.from(new Set(
+      dates.map(d => d.daysOfWeek[0])
+    )).sort();
+
+    const daysText = uniqueDays
+      .map(day => DAYS_MAP[day as keyof typeof DAYS_MAP])
+      .join(', ');
+
+    return `${startDate} até ${endDate} (${daysText}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
   };
 
   return (
@@ -162,7 +192,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-          <Typography variant="h6">
+          <Typography variant="h6" sx={{ fontWeight: 'normal' }}>
             Sala {classroom.roomNumber}
           </Typography>
           {isAdmin && (
@@ -194,14 +224,31 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
           )}
         </Box>
 
-        <Typography color="textSecondary" gutterBottom>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
           Prédio: {classroom.building}
         </Typography>
-        <Typography color="textSecondary" gutterBottom>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
           Andar: {classroom.floor}
         </Typography>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          Capacidade: {classroom.maxStudents} alunos
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          Mesas: {classroom.desks}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          Cadeiras: {classroom.chairs}
+        </Typography>
+        {classroom.computers !== undefined && (
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            Computadores: {classroom.computers}
+          </Typography>
+        )}
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          Projetor: {classroom.hasProjector ? "Sim" : "Não"}
+        </Typography>
         
-        {classroom.currentOccupation ? (
+        {classroom.currentOccupation && (
           <>
             <Typography variant="body2" color="textSecondary">
               Professor: {classroom.currentOccupation.teacher}
@@ -212,28 +259,6 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
             <Typography variant="body2" color="textSecondary">
               Horário: {classroom.currentOccupation.startTime} - {classroom.currentOccupation.endTime}
             </Typography>
-          </>
-        ) : (
-          <>
-            <Typography variant="body2">
-              Capacidade: {classroom.maxStudents} alunos
-            </Typography>
-            <Typography variant="body2">
-              Mesas: {classroom.desks}
-            </Typography>
-            <Typography variant="body2">
-              Cadeiras: {classroom.chairs}
-            </Typography>
-            {classroom.computers !== undefined && (
-              <Typography variant="body2">
-                Computadores: {classroom.computers}
-              </Typography>
-            )}
-            {classroom.hasProjector && (
-              <Typography variant="body2">
-                Projetor: {classroom.hasProjector ? "Sim" : "Não"}
-              </Typography>
-            )}
           </>
         )}
 
@@ -281,15 +306,15 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
             <Typography>Nenhuma ocupação registrada</Typography>
           ) : (
             <List>
-              {occupations.map((occupation, index) => (
-                <Fragment key={`${occupation.teacher}-${occupation.startDate}`}>
+              {groupOccupations(occupations).map((group, index) => (
+                <Fragment key={`${group[0].teacher}-${group[0].startDate}`}>
                   <ListItem>
                     <ListItemText
-                      primary={`${occupation.teacher} - ${occupation.subject}`}
-                      secondary={formatOccupationPeriod(occupation)}
+                      primary={`${group[0].teacher} - ${group[0].subject}`}
+                      secondary={formatOccupationPeriod(group)}
                     />
                   </ListItem>
-                  {index < occupations.length - 1 && <Divider />}
+                  {index < groupOccupations(occupations).length - 1 && <Divider />}
                 </Fragment>
               ))}
             </List>
