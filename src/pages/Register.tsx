@@ -71,11 +71,19 @@ export function Register() {
             <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {/* Logo e título */}
                 <Box sx={{ mb: 4, textAlign: 'center' }}>
-                    <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: '#1a237e', mb: 1 }}>
+                    <Typography variant="h3" component="h1" sx={{ 
+                        fontWeight: 'bold', 
+                        color: '#1a237e', 
+                        mb: 1,
+                        fontSize: { xs: '2rem', sm: '3rem' }
+                    }}>
                         Sala Manager
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>
-                        Gerencie suas salas de forma eficiente
+                    <Typography variant="h6" sx={{ 
+                        color: 'text.secondary',
+                        fontSize: { xs: '1rem', sm: '1.25rem' }
+                    }}>
+                        Sistema de Gerenciamento de Salas
                     </Typography>
                 </Box>
 

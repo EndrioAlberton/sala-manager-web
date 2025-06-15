@@ -252,6 +252,14 @@ export function Dashboard() {
               )}
               <Button
                 variant="outlined"
+                color="primary"
+                onClick={() => navigate('/profile')}
+                size="small"
+              >
+                Meu Perfil
+              </Button>
+              <Button
+                variant="outlined"
                 color="secondary"
                 onClick={handleLogout}
                 size="small"

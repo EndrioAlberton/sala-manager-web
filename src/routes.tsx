@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
+import { UserProfile } from './pages/UserProfile';
 import { authService } from './services/authService';
 
 // Componente que verifica autenticação para rotas privadas
@@ -44,6 +45,14 @@ export const router = createBrowserRouter([
         element: (
             <PrivateRoute>
                 <Dashboard />
+            </PrivateRoute>
+        )
+    },
+    {
+        path: '/profile',
+        element: (
+            <PrivateRoute>
+                <UserProfile />
             </PrivateRoute>
         )
     },
