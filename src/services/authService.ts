@@ -85,12 +85,12 @@ export const authService = {
 
     isProfessor(): boolean {
         const user = this.getCurrentUser();
-        return user?.userType === UserType.PROFESSOR;
+        return user?.userType?.toLowerCase() === UserType.PROFESSOR.toLowerCase();
     },
 
     isAdmin(): boolean {
         const user = this.getCurrentUser();
-        return user?.userType === UserType.ADMIN;
+        return user?.userType?.toLowerCase() === UserType.ADMIN.toLowerCase();
     },
 
     _handleError(error: any): Error {
