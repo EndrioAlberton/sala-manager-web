@@ -25,6 +25,7 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { authService } from '../services/authService';
 import { occupationService } from '../services/api';
+import { disciplineService, Discipline } from '../services/disciplineService';
 
 interface ClassroomCardProps {
   classroom: ClassRoom & { currentOccupation?: Occupation };
@@ -48,21 +49,40 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
   const [isOccupationFormOpen, setIsOccupationFormOpen] = useState(false);
   const [isOccupationsDialogOpen, setIsOccupationsDialogOpen] = useState(false);
   const [occupations, setOccupations] = useState<Occupation[]>([]);
-  const isProfessor = authService.isProfessor();
+  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const currentUser = authService.getCurrentUser();
+  const isProfessor = currentUser?.userType?.toLowerCase() === 'professor';
   const isAdmin = authService.isAdmin();
 
-  const loadOccupations = async () => {
-    try {
-      const occupationsData = await occupationService.findByRoom(classroom.id);
-      setOccupations(occupationsData);
-    } catch (error) {
-      console.error('Erro ao carregar ocupações:', error);
-    }
-  };
-
+  // Carrega as disciplinas apenas uma vez quando o componente é montado
   useEffect(() => {
+    const loadDisciplines = async () => {
+      try {
+        if (currentUser && isProfessor) {
+          const data = await disciplineService.getProfessorDisciplines(currentUser.id);
+          setDisciplines(data);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar disciplinas:', error);
+      }
+    };
+
+    loadDisciplines();
+  }, [currentUser, isProfessor]);
+
+  // Carrega as ocupações apenas quando a sala muda ou quando uma nova ocupação é adicionada
+  useEffect(() => {
+    const loadOccupations = async () => {
+      try {
+        const occupationsData = await occupationService.findByRoom(classroom.id);
+        setOccupations(occupationsData);
+      } catch (error) {
+        console.error('Erro ao carregar ocupações:', error);
+      }
+    };
+
     loadOccupations();
-  }, [classroom.id]);
+  }, [classroom.id]); // Executa apenas quando a sala muda
 
   const handleDelete = () => {
     if (classroom.currentOccupation) {
@@ -121,7 +141,8 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
       });
       
       setIsOccupationFormOpen(false);
-      loadOccupations();
+      const occupationsData = await occupationService.findByRoom(classroom.id);
+      setOccupations(occupationsData);
       onRefresh();
     } catch (error: any) {
       alert(error.message);
@@ -292,6 +313,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         open={isOccupationFormOpen}
         onClose={() => setIsOccupationFormOpen(false)}
         onSubmit={handleOccupy}
+        disciplines={disciplines}
       />
 
       <Dialog 

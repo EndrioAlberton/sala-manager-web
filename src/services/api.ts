@@ -22,15 +22,8 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
-
-// Adicionar token em todas as requisições
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 api.interceptors.response.use(
@@ -39,12 +32,18 @@ api.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // Limpar dados de autenticação
+          // Limpar dados de autenticação e redirecionar para login
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          break;
+        case 403:
+          console.error('Acesso negado:', error.response.data);
           break;
         default:
+          console.error('Erro na requisição:', error.response.data);
           break;
       }
     }

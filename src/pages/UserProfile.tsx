@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { userService } from '../services/userService';
 import { authService } from '../services/authService';
+import { disciplineService, BaseDiscipline, Discipline } from '../services/disciplineService';
 import { User } from '../services/api';
 import { z } from 'zod';
 import { 
@@ -14,7 +15,18 @@ import {
     Button,
     Paper,
     Alert,
+    List,
+    ListItem,
+    ListItemText,
+    ListItemSecondaryAction,
+    Divider,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    IconButton,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const profileSchema = z.object({
     name: z.string()
@@ -29,6 +41,10 @@ export function UserProfile() {
     const navigate = useNavigate();
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+    const [baseDisciplines, setBaseDisciplines] = useState<BaseDiscipline[]>([]);
+    const [selectedDiscipline, setSelectedDiscipline] = useState<number>(0);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
 
     const {
         register,
@@ -46,12 +62,83 @@ export function UserProfile() {
             return;
         }
 
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-            setValue('name', currentUser.name);
-            setValue('email', currentUser.email);
+        const user = authService.getCurrentUser();
+        if (user) {
+            setCurrentUser(user);
+            setValue('name', user.name);
+            setValue('email', user.email);
+
+            if (user.userType && user.userType.toUpperCase() === 'PROFESSOR') {
+                loadDisciplines(user.id);
+            }
         }
     }, [navigate, setValue]);
+
+    // Efeito para carregar disciplinas base quando as disciplinas do professor mudarem
+    useEffect(() => {
+        if (currentUser?.userType?.toUpperCase() === 'PROFESSOR') {
+            loadBaseDisciplines();
+        }
+    }, [disciplines]);
+
+    const loadDisciplines = async (professorId: number) => {
+        try {
+            const data = await disciplineService.getProfessorDisciplines(professorId);
+            setDisciplines(data);
+        } catch (err: any) {
+            console.error('Erro ao carregar disciplinas:', err);
+            setError(err.message || 'Erro ao carregar disciplinas');
+        }
+    };
+
+    const loadBaseDisciplines = async () => {
+        try {
+            const data = await disciplineService.getBaseDisciplines();
+            // Filtra as disciplinas que o professor já tem
+            const availableDisciplines = data.filter(baseDiscipline => 
+                !disciplines.some(d => d.baseDisciplineId === baseDiscipline.id)
+            );
+            setBaseDisciplines(availableDisciplines);
+        } catch (err: any) {
+            console.error('Erro ao carregar disciplinas base:', err);
+            setError(err.message || 'Erro ao carregar disciplinas base');
+        }
+    };
+
+    const handleAddDiscipline = async () => {
+        if (!selectedDiscipline || !currentUser) return;
+
+        try {
+            setLoading(true);
+            setError('');
+            await disciplineService.addDiscipline(currentUser.id, selectedDiscipline);
+            await loadDisciplines(currentUser.id);
+            setSelectedDiscipline(0);
+        } catch (err: any) {
+            console.error('Erro ao adicionar disciplina:', err);
+            if (err.message.includes('já possui a disciplina')) {
+                setError('Você já possui esta disciplina em seu perfil');
+            } else {
+                setError(err.message || 'Erro ao adicionar disciplina');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRemoveDiscipline = async (disciplineId: number) => {
+        if (!currentUser) return;
+
+        try {
+            setLoading(true);
+            await disciplineService.removeDiscipline(disciplineId);
+            await loadDisciplines(currentUser.id);
+        } catch (err: any) {
+            setError('Erro ao remover disciplina');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const onSubmit = async (data: any) => {
         setError('');
@@ -148,6 +235,61 @@ export function UserProfile() {
                                 {...register('email')}
                                 variant="outlined"
                             />
+
+                            {currentUser?.userType?.toUpperCase() === 'PROFESSOR' && (
+                                <>
+                                    <Divider sx={{ my: 2 }} />
+                                    
+                                    <Typography variant="h6" sx={{ mb: 2 }}>
+                                        Minhas Disciplinas
+                                    </Typography>
+
+                                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Adicionar Disciplina</InputLabel>
+                                            <Select
+                                                value={selectedDiscipline}
+                                                onChange={(e) => setSelectedDiscipline(Number(e.target.value))}
+                                                label="Adicionar Disciplina"
+                                            >
+                                                <MenuItem value={0}>Selecione uma disciplina</MenuItem>
+                                                {baseDisciplines.map(discipline => (
+                                                    <MenuItem key={discipline.id} value={discipline.id}>
+                                                        {discipline.name} ({discipline.code})
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleAddDiscipline}
+                                            disabled={!selectedDiscipline || loading}
+                                        >
+                                            Adicionar
+                                        </Button>
+                                    </Box>
+
+                                    <List>
+                                        {disciplines.map(discipline => (
+                                            <ListItem key={discipline.id}>
+                                                <ListItemText
+                                                    primary={discipline.baseDiscipline?.name}
+                                                    secondary={`${discipline.baseDiscipline?.code} - ${discipline.baseDiscipline?.area}`}
+                                                />
+                                                <ListItemSecondaryAction>
+                                                    <IconButton
+                                                        edge="end"
+                                                        onClick={() => handleRemoveDiscipline(discipline.id)}
+                                                        disabled={loading}
+                                                    >
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </ListItemSecondaryAction>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                </>
+                            )}
 
                             <Box sx={{ 
                                 display: 'flex', 
