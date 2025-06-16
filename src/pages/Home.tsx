@@ -71,7 +71,6 @@ export function Home() {
         setError(currentTab === 0 ? 'Nenhuma sala ocupada no momento' : 'Nenhuma sala disponível no momento');
       }
     } catch (err) {
-      console.error('Erro ao carregar salas:', err);
       setError('Erro ao carregar as salas. Tente novamente.');
     } finally {
       setIsLoading(false);

@@ -92,7 +92,7 @@ export function Dashboard() {
       // Verificar quais salas estão ocupadas no momento
       const currentDate = currentDateTime.toISOString().split('T')[0];
       const currentTime = format(currentDateTime, 'HH:mm');
-      
+
       const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
       const occupiedRoomIds = new Set(occupiedRooms.map(o => o.roomId));
 

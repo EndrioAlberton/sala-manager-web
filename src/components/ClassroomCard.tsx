@@ -63,7 +63,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
           setDisciplines(data);
         }
       } catch (error) {
-        console.error('Erro ao carregar disciplinas:', error);
+        // Silently fail
       }
     };
 
@@ -77,7 +77,7 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         const occupationsData = await occupationService.findByRoom(classroom.id);
         setOccupations(occupationsData);
       } catch (error) {
-        console.error('Erro ao carregar ocupações:', error);
+        // Silently fail
       }
     };
 
