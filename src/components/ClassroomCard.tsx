@@ -172,23 +172,11 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
     const dates = occupations
       .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
-    const startDate = format(new Date(dates[0].startDate), 'dd/MM/yyyy', { locale: ptBR });
-    const endDate = format(new Date(dates[dates.length - 1].startDate), 'dd/MM/yyyy', { locale: ptBR });
+    const startDate = format(new Date(firstOccupation.startDate), 'dd/MM/yyyy', { locale: ptBR });
+    const endDate = format(new Date(firstOccupation.endDate), 'dd/MM/yyyy', { locale: ptBR });
     
-    if (dates.length === 1) {
-      const dayOfWeek = DAYS_MAP[dates[0].daysOfWeek[0] as keyof typeof DAYS_MAP];
-      return `${startDate} (${dayOfWeek}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
-    }
-
-    const uniqueDays = Array.from(new Set(
-      dates.map(d => d.daysOfWeek[0])
-    )).sort();
-
-    const daysText = uniqueDays
-      .map(day => DAYS_MAP[day as keyof typeof DAYS_MAP])
-      .join(', ');
-
-    return `${startDate} até ${endDate} (${daysText}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
+    const dayOfWeek = DAYS_MAP[firstOccupation.daysOfWeek[0] as keyof typeof DAYS_MAP];
+    return `${startDate} até ${endDate} (${dayOfWeek}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
   };
 
   return (
