@@ -20,6 +20,7 @@ import { ClassRoom } from '../types/ClassRoom';
 import { Occupation } from '../types/Occupation';
 import { ClassroomCard } from '../components/ClassroomCard';
 import { ClassroomForm } from '../components/ClassroomForm';
+import { classroomObserver } from '../services/classroomObserver';
 
 // Componentes que precisamos criar
 import { NavigationTabs } from '../components/NavigationTabs';
@@ -63,7 +64,7 @@ export function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClassroom, setSelectedClassroom] = useState<ClassRoom | undefined>();
-  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [currentDateTime] = useState(new Date());
   const isAdmin = authService.isAdmin();
 
   const handleLogout = () => {
@@ -71,17 +72,11 @@ export function Dashboard() {
     navigate('/login');
   };
 
-  useEffect(() => {
-    // Atualiza a data/hora a cada minuto
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
-
   // Função para carregar todas as salas
   const loadClassrooms = async () => {
+    // Se um modal estiver aberto, não atualiza
+    if (isFormOpen) return;
+
     setIsLoading(true);
     setError('');
 
@@ -194,7 +189,20 @@ export function Dashboard() {
 
   useEffect(() => {
     loadClassrooms();
-  }, [currentTab, currentDateTime]);
+  }, [currentTab]);
+
+  // Adiciona o observer quando o componente monta
+  useEffect(() => {
+    const unsubscribe = classroomObserver.subscribe(() => {
+      // Só atualiza se não houver modal aberto
+      if (!isFormOpen) {
+        loadClassrooms();
+      }
+    });
+
+    // Cleanup quando o componente desmonta
+    return () => unsubscribe();
+  }, [isFormOpen]); // Adiciona isFormOpen como dependência
 
   const handleOpenForm = (classroom?: ClassRoom) => {
     setSelectedClassroom(classroom);
