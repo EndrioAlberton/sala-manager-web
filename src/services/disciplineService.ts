@@ -12,47 +12,35 @@ export interface Discipline {
     id: number;
     baseDisciplineId: number;
     professorId: number;
-    baseDiscipline: BaseDiscipline;
+    baseDiscipline?: BaseDiscipline;
 }
 
 class DisciplineService {
-    async getProfessorDisciplines(professorId: number): Promise<Discipline[]> {
-        try {
-            const response = await api.get(`/disciplines/professor/${professorId}`);
-            return response.data;
-        } catch (error: any) {
-            console.error('Erro ao carregar disciplinas do professor:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.message || 'Erro ao carregar disciplinas do professor');
-        }
+    async getBaseDisciplines(): Promise<BaseDiscipline[]> {
+        const response = await api.get('/base-disciplines');
+        return response.data;
     }
 
-    async getBaseDisciplines(): Promise<BaseDiscipline[]> {
-        try {
-            const response = await api.get('/base-disciplines');
-            return response.data;
-        } catch (error: any) {
-            console.error('Erro ao carregar disciplinas base:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.message || 'Erro ao carregar disciplinas base');
-        }
+    async createBaseDiscipline(data: Omit<BaseDiscipline, 'id'>): Promise<BaseDiscipline> {
+        const response = await api.post('/base-disciplines', data);
+        return response.data;
+    }
+
+    async getProfessorDisciplines(professorId: number): Promise<Discipline[]> {
+        const response = await api.get(`/disciplines/professor/${professorId}`);
+        return response.data;
     }
 
     async addDiscipline(professorId: number, baseDisciplineId: number): Promise<Discipline> {
-        try {
-            const response = await api.post('/disciplines', { professorId, baseDisciplineId });
-            return response.data;
-        } catch (error: any) {
-            console.error('Erro ao adicionar disciplina:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.message || 'Erro ao adicionar disciplina');
-        }
+        const response = await api.post('/disciplines', {
+            professorId,
+            baseDisciplineId
+        });
+        return response.data;
     }
 
-    async removeDiscipline(disciplineId: number): Promise<void> {
-        try {
-            await api.delete(`/disciplines/${disciplineId}`);
-        } catch (error: any) {
-            console.error('Erro ao remover disciplina:', error.response?.data || error.message);
-            throw new Error(error.response?.data?.message || 'Erro ao remover disciplina');
-        }
+    async removeDiscipline(id: number): Promise<void> {
+        await api.delete(`/disciplines/${id}`);
     }
 }
 

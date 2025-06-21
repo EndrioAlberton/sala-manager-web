@@ -25,8 +25,13 @@ import {
     FormControl,
     InputLabel,
     IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { UserType } from '../types/User';
 
 const profileSchema = z.object({
     name: z.string()
@@ -37,6 +42,21 @@ const profileSchema = z.object({
         .email('Formato de email inválido')
 });
 
+const baseDisciplineSchema = z.object({
+    name: z.string()
+        .min(3, 'Nome deve ter no mínimo 3 caracteres')
+        .max(100, 'Nome deve ter no máximo 100 caracteres'),
+    code: z.string()
+        .min(3, 'Código deve ter no mínimo 3 caracteres')
+        .max(10, 'Código deve ter no máximo 10 caracteres'),
+    description: z.string()
+        .min(10, 'Descrição deve ter no mínimo 10 caracteres')
+        .max(500, 'Descrição deve ter no máximo 500 caracteres'),
+    area: z.string()
+        .min(3, 'Área deve ter no mínimo 3 caracteres')
+        .max(50, 'Área deve ter no máximo 50 caracteres')
+});
+
 export function UserProfile() {
     const navigate = useNavigate();
     const [error, setError] = useState<string>('');
@@ -45,14 +65,26 @@ export function UserProfile() {
     const [baseDisciplines, setBaseDisciplines] = useState<BaseDiscipline[]>([]);
     const [selectedDiscipline, setSelectedDiscipline] = useState<number>(0);
     const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [isBaseDisciplineDialogOpen, setIsBaseDisciplineDialogOpen] = useState(false);
+    const isAdmin = authService.isAdmin();
 
     const {
-        register,
-        handleSubmit,
+        register: registerProfile,
+        handleSubmit: handleSubmitProfile,
         setValue,
-        formState: { errors }
+        formState: { errors: profileErrors }
     } = useForm({
         resolver: zodResolver(profileSchema),
+        mode: 'onChange'
+    });
+
+    const {
+        register: registerBaseDiscipline,
+        handleSubmit: handleSubmitBaseDiscipline,
+        formState: { errors: baseDisciplineErrors },
+        reset: resetBaseDisciplineForm
+    } = useForm({
+        resolver: zodResolver(baseDisciplineSchema),
         mode: 'onChange'
     });
 
@@ -68,7 +100,7 @@ export function UserProfile() {
             setValue('name', user.name);
             setValue('email', user.email);
 
-            if (user.userType && user.userType.toUpperCase() === 'PROFESSOR') {
+            if (authService.isProfessor()) {
                 loadDisciplines(user.id);
             }
         }
@@ -76,7 +108,7 @@ export function UserProfile() {
 
     // Efeito para carregar disciplinas base quando as disciplinas do professor mudarem
     useEffect(() => {
-        if (currentUser?.userType?.toUpperCase() === 'PROFESSOR') {
+        if (authService.isProfessor()) {
             loadBaseDisciplines();
         }
     }, [disciplines]);
@@ -140,6 +172,24 @@ export function UserProfile() {
         }
     };
 
+    const handleCreateBaseDiscipline = async (data: any) => {
+        try {
+            setLoading(true);
+            setError('');
+            await disciplineService.createBaseDiscipline(data);
+            setIsBaseDisciplineDialogOpen(false);
+            resetBaseDisciplineForm();
+            // Atualiza a lista de disciplinas base
+            const updatedBaseDisciplines = await disciplineService.getBaseDisciplines();
+            setBaseDisciplines(updatedBaseDisciplines);
+        } catch (err: any) {
+            console.error('Erro ao criar disciplina base:', err);
+            setError(err.message || 'Erro ao criar disciplina base');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const onSubmit = async (data: any) => {
         setError('');
         setLoading(true);
@@ -196,7 +246,7 @@ export function UserProfile() {
                 </Typography>
             </Paper>
 
-            <Container maxWidth="lg">
+            <Container maxWidth="md">
                 <Paper 
                     elevation={2}
                     sx={{ 
@@ -206,7 +256,7 @@ export function UserProfile() {
                         backdropFilter: 'blur(10px)'
                     }}
                 >
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={handleSubmitProfile(onSubmit)}>
                         {error && (
                             <Alert 
                                 severity="error" 
@@ -220,9 +270,9 @@ export function UserProfile() {
                             <TextField
                                 fullWidth
                                 label="Nome"
-                                error={!!errors.name}
-                                helperText={errors.name?.message as string}
-                                {...register('name')}
+                                error={!!profileErrors.name}
+                                helperText={profileErrors.name?.message as string}
+                                {...registerProfile('name')}
                                 variant="outlined"
                             />
 
@@ -230,13 +280,13 @@ export function UserProfile() {
                                 fullWidth
                                 label="Email"
                                 type="email"
-                                error={!!errors.email}
-                                helperText={errors.email?.message as string}
-                                {...register('email')}
+                                error={!!profileErrors.email}
+                                helperText={profileErrors.email?.message as string}
+                                {...registerProfile('email')}
                                 variant="outlined"
                             />
 
-                            {currentUser?.userType?.toUpperCase() === 'PROFESSOR' && (
+                            {authService.isProfessor() && (
                                 <>
                                     <Divider sx={{ my: 2 }} />
                                     
@@ -291,6 +341,25 @@ export function UserProfile() {
                                 </>
                             )}
 
+                            {isAdmin && (
+                                <>
+                                    <Divider sx={{ my: 2 }} />
+                                    
+                                    <Typography variant="h6" sx={{ mb: 2 }}>
+                                        Gerenciar Disciplinas Base
+                                    </Typography>
+
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={() => setIsBaseDisciplineDialogOpen(true)}
+                                        sx={{ alignSelf: 'flex-start' }}
+                                    >
+                                        Nova Disciplina Base
+                                    </Button>
+                                </>
+                            )}
+
                             <Box sx={{ 
                                 display: 'flex', 
                                 gap: 2, 
@@ -316,6 +385,70 @@ export function UserProfile() {
                     </form>
                 </Paper>
             </Container>
+
+            {/* Dialog para criar nova disciplina base */}
+            <Dialog 
+                open={isBaseDisciplineDialogOpen} 
+                onClose={() => setIsBaseDisciplineDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Nova Disciplina Base</DialogTitle>
+                <form onSubmit={handleSubmitBaseDiscipline(handleCreateBaseDiscipline)}>
+                    <DialogContent>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                            <TextField
+                                fullWidth
+                                label="Nome da Disciplina"
+                                error={!!baseDisciplineErrors.name}
+                                helperText={baseDisciplineErrors.name?.message as string}
+                                {...registerBaseDiscipline('name')}
+                            />
+                            
+                            <TextField
+                                fullWidth
+                                label="Código"
+                                error={!!baseDisciplineErrors.code}
+                                helperText={baseDisciplineErrors.code?.message as string}
+                                {...registerBaseDiscipline('code')}
+                            />
+                            
+                            <TextField
+                                fullWidth
+                                label="Descrição"
+                                multiline
+                                rows={3}
+                                error={!!baseDisciplineErrors.description}
+                                helperText={baseDisciplineErrors.description?.message as string}
+                                {...registerBaseDiscipline('description')}
+                            />
+                            
+                            <TextField
+                                fullWidth
+                                label="Área"
+                                error={!!baseDisciplineErrors.area}
+                                helperText={baseDisciplineErrors.area?.message as string}
+                                {...registerBaseDiscipline('area')}
+                            />
+                        </Box>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button 
+                            onClick={() => setIsBaseDisciplineDialogOpen(false)}
+                            disabled={loading}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button 
+                            type="submit"
+                            variant="contained"
+                            disabled={loading}
+                        >
+                            {loading ? 'Criando...' : 'Criar Disciplina'}
+                        </Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
         </Box>
     );
 } 
