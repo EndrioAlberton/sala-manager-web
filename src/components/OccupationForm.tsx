@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { occupationSchema } from '../schemas/occupationSchema';
@@ -20,11 +20,28 @@ import {
     FormLabel,
     Stack,
 } from '@mui/material';
+import { occupationService } from '../services/occupationService';
+
+interface User {
+    email: string;
+    userType?: string;
+}
+
+interface BaseDiscipline {
+    name: string;
+}
+
+interface Discipline {
+    id: number;
+    baseDiscipline: BaseDiscipline;
+}
 
 interface OccupationFormProps {
     open: boolean;
     onClose: () => void;
     onSubmit: (data: any) => void;
+    currentUser: User | null;
+    selectedRoom: number;
     disciplines: Discipline[];
 }
 
@@ -38,29 +55,26 @@ const DAYS_OF_WEEK = [
     { value: 6, label: 'Sábado' },
 ];
 
-export function OccupationForm({ open, onClose, onSubmit, disciplines }: OccupationFormProps) {
-    const currentUser = authService.getCurrentUser();
+export function OccupationForm({ open, onClose, onSubmit, currentUser, selectedRoom, disciplines }: OccupationFormProps) {
     const isProfessor = currentUser?.userType?.toLowerCase() === 'professor';
     const [selectedDiscipline, setSelectedDiscipline] = useState<Discipline | null>(null);
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
+    const [error, setError] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [startTime, setStartTime] = useState<string>('');
+    const [endTime, setEndTime] = useState<string>('');
 
     const {
         register,
-        handleSubmit,
+        handleSubmit: formHandleSubmit,
         formState: { errors },
         setValue,
-        reset
+        reset,
+        setError: formSetError,
     } = useForm({
         resolver: zodResolver(occupationSchema),
-        defaultValues: {
-            teacher: currentUser?.email || '',
-            disciplina: '',
-            startDate: '',
-            endDate: '',
-            startTime: '',
-            endTime: '',
-            daysOfWeek: []
-        }
     });
 
     useEffect(() => {
@@ -103,23 +117,58 @@ export function OccupationForm({ open, onClose, onSubmit, disciplines }: Occupat
         }
     };
 
-    const handleFormSubmit = (data: any) => {
-        const formData = {
-            ...data,
-            teacher: currentUser?.email,
-            disciplina: selectedDiscipline?.baseDiscipline.name || '',
-            subject: selectedDiscipline?.baseDiscipline.name,
-            daysOfWeek: selectedDays
-        };
+    const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-        onSubmit(formData);
-        onClose();
+        try {
+            console.log('=== FRONTEND: INICIANDO CRIAÇÃO DE OCUPAÇÃO ===');
+            console.log('Dados do formulário:', {
+                roomId: selectedRoom,
+                teacher: currentUser?.email,
+                subject: selectedDiscipline?.baseDiscipline.name,
+                startDate,
+                endDate,
+                startTime,
+                endTime,
+                daysOfWeek: selectedDays
+            });
+
+            const response = await occupationService.create({
+                roomId: selectedRoom,
+                teacher: currentUser?.email || '',
+                subject: selectedDiscipline?.baseDiscipline.name || '',
+                startDate,
+                endDate,
+                startTime,
+                endTime,
+                daysOfWeek: selectedDays
+            });
+
+            console.log('Ocupação criada com sucesso:', response);
+            console.log('=== FRONTEND: FIM DA CRIAÇÃO DE OCUPAÇÃO ===');
+
+            onSubmit(response);
+            onClose();
+        } catch (err) {
+            console.error('=== FRONTEND: ERRO NA CRIAÇÃO DE OCUPAÇÃO ===');
+            console.error('Erro detalhado:', err);
+
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Erro ao criar ocupação');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>Ocupar Sala</DialogTitle>
-            <form onSubmit={handleSubmit(handleFormSubmit)}>
+            <form onSubmit={onFormSubmit}>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <input
@@ -225,6 +274,12 @@ export function OccupationForm({ open, onClose, onSubmit, disciplines }: Occupat
                                 </FormHelperText>
                             )}
                         </FormControl>
+
+                        {error && (
+                            <Box sx={{ color: 'error.main', mt: 2 }}>
+                                {error}
+                            </Box>
+                        )}
                     </Box>
                 </DialogContent>
                 <DialogActions>
@@ -232,11 +287,14 @@ export function OccupationForm({ open, onClose, onSubmit, disciplines }: Occupat
                     <Button 
                         type="submit" 
                         variant="contained"
+                        disabled={loading}
                     >
-                        Ocupar ({selectedDays.length} {selectedDays.length === 1 ? 'dia' : 'dias'})
+                        {loading ? 'Aguarde...' : 'Ocupar'}
                     </Button>
                 </DialogActions>
             </form>
         </Dialog>
     );
 }
+
+export default OccupationForm;

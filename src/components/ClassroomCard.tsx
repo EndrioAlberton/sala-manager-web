@@ -175,8 +175,12 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
     const startDate = format(new Date(firstOccupation.startDate), 'dd/MM/yyyy', { locale: ptBR });
     const endDate = format(new Date(firstOccupation.endDate), 'dd/MM/yyyy', { locale: ptBR });
     
-    const dayOfWeek = DAYS_MAP[firstOccupation.daysOfWeek[0] as keyof typeof DAYS_MAP];
-    return `${startDate} até ${endDate} (${dayOfWeek}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
+    const daysOfWeek = firstOccupation.daysOfWeek
+      .sort((a, b) => a - b)
+      .map(day => DAYS_MAP[day as keyof typeof DAYS_MAP])
+      .join(', ');
+
+    return `${startDate} até ${endDate} (${daysOfWeek}) - ${firstOccupation.startTime} às ${firstOccupation.endTime}`;
   };
 
   return (
