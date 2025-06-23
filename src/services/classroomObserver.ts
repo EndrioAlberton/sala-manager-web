@@ -41,8 +41,11 @@ class ClassroomObserver {
     if (!this.isChecking) return;
 
     try {
-      const currentDate = new Date().toISOString().split('T')[0];
-      const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const now = new Date();
+      const currentDate = now.getFullYear() + '-' + 
+                         String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(now.getDate()).padStart(2, '0');
+      const currentTime = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       
       const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);
       const currentOccupiedRooms = new Set(occupiedRooms.map(o => o.roomId));

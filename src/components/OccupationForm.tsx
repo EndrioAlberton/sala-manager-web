@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { occupationSchema } from '../schemas/occupationSchema';
 import { authService } from '../services/authService';
 import { disciplineService, Discipline } from '../services/disciplineService';
+import { occupationService } from '../services/api';
 import {
     Dialog,
     DialogTitle,
@@ -20,20 +21,10 @@ import {
     FormLabel,
     Stack,
 } from '@mui/material';
-import { occupationService } from '../services/occupationService';
 
 interface User {
     email: string;
     userType?: string;
-}
-
-interface BaseDiscipline {
-    name: string;
-}
-
-interface Discipline {
-    id: number;
-    baseDiscipline: BaseDiscipline;
 }
 
 interface OccupationFormProps {
@@ -88,7 +79,7 @@ export function OccupationForm({ open, onClose, onSubmit, currentUser, selectedR
 
         reset({
             teacher: currentUser?.email || '',
-            disciplina: initialDiscipline.baseDiscipline.name,
+            disciplina: initialDiscipline.baseDiscipline?.name || '',
             startDate: '',
             endDate: '',
             startTime: '',
@@ -113,7 +104,7 @@ export function OccupationForm({ open, onClose, onSubmit, currentUser, selectedR
         const discipline = disciplines.find(d => d.id.toString() === disciplineId);
         if (discipline) {
             setSelectedDiscipline(discipline);
-            setValue('disciplina', discipline.baseDiscipline.name);
+            setValue('disciplina', discipline.baseDiscipline?.name || '');
         }
     };
 
@@ -122,43 +113,49 @@ export function OccupationForm({ open, onClose, onSubmit, currentUser, selectedR
         setError('');
         setLoading(true);
 
+        // Captura os valores dos campos do formulário
+        const formData = new FormData(e.currentTarget);
+        const formValues = {
+            startDate: formData.get('startDate') as string,
+            endDate: formData.get('endDate') as string,
+            startTime: formData.get('startTime') as string,
+            endTime: formData.get('endTime') as string,
+        };
+
         try {
-            console.log('=== FRONTEND: INICIANDO CRIAÇÃO DE OCUPAÇÃO ===');
+            console.log('=== FRONTEND: ENVIANDO DADOS PARA HANDLEOCCUPY ===');
             console.log('Dados do formulário:', {
-                roomId: selectedRoom,
                 teacher: currentUser?.email,
-                subject: selectedDiscipline?.baseDiscipline.name,
-                startDate,
-                endDate,
-                startTime,
-                endTime,
+                subject: selectedDiscipline?.baseDiscipline?.name || '',
+                startDate: formValues.startDate,
+                endDate: formValues.endDate,
+                startTime: formValues.startTime,
+                endTime: formValues.endTime,
                 daysOfWeek: selectedDays
             });
 
-            const response = await occupationService.create({
-                roomId: selectedRoom,
+            // Apenas passa os dados para o ClassroomCard.handleOccupy()
+            // Não cria a ocupação aqui
+            onSubmit({
                 teacher: currentUser?.email || '',
-                subject: selectedDiscipline?.baseDiscipline.name || '',
-                startDate,
-                endDate,
-                startTime,
-                endTime,
+                subject: selectedDiscipline?.baseDiscipline?.name || '',
+                startDate: formValues.startDate,
+                endDate: formValues.endDate,
+                startTime: formValues.startTime,
+                endTime: formValues.endTime,
                 daysOfWeek: selectedDays
             });
 
-            console.log('Ocupação criada com sucesso:', response);
-            console.log('=== FRONTEND: FIM DA CRIAÇÃO DE OCUPAÇÃO ===');
-
-            onSubmit(response);
+            console.log('=== FRONTEND: DADOS ENVIADOS ===');
             onClose();
         } catch (err) {
-            console.error('=== FRONTEND: ERRO NA CRIAÇÃO DE OCUPAÇÃO ===');
+            console.error('=== FRONTEND: ERRO NO FORMULÁRIO ===');
             console.error('Erro detalhado:', err);
 
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError('Erro ao criar ocupação');
+                setError('Erro no formulário');
             }
         } finally {
             setLoading(false);
@@ -187,7 +184,7 @@ export function OccupationForm({ open, onClose, onSubmit, currentUser, selectedR
                                 >
                                     {disciplines.map((discipline) => (
                                         <MenuItem key={discipline.id} value={discipline.id.toString()}>
-                                            {discipline.baseDiscipline.name}
+                                            {discipline.baseDiscipline?.name || 'Disciplina sem nome'}
                                         </MenuItem>
                                     ))}
                                 </Select>

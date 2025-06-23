@@ -84,8 +84,8 @@ export function Dashboard() {
       // Buscar todas as salas
       const allClassrooms = await classroomService.findAll();
       
-      // Verificar quais salas estão ocupadas no momento
-      const currentDate = currentDateTime.toISOString().split('T')[0];
+      // Verificar quais salas estão ocupadas no momento - usar data local
+      const currentDate = format(currentDateTime, 'yyyy-MM-dd');
       const currentTime = format(currentDateTime, 'HH:mm');
 
       const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);

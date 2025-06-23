@@ -44,7 +44,7 @@ export function Home() {
     try {
       const allClassrooms = await classroomService.findAll();
       
-      const currentDate = currentDateTime.toISOString().split('T')[0];
+      const currentDate = format(currentDateTime, 'yyyy-MM-dd');
       const currentTime = format(currentDateTime, 'HH:mm');
 
       const occupiedRooms = await occupationService.getOccupiedRooms(currentDate, currentTime);

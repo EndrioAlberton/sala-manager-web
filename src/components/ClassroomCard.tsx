@@ -114,7 +114,11 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
   }) => {
     setIsLoading(true);
     try {
-      // Verificar disponibilidade primeiro
+      console.log('=== HANDLEOCCUPY: Iniciando verificação ===');
+      console.log('Dados recebidos:', data);
+
+      // PRIMEIRO: Verificar disponibilidade
+      console.log('=== HANDLEOCCUPY: Verificando disponibilidade ===');
       const isAvailable = await occupationService.checkAvailability({
         roomId: classroom.id,
         startDate: new Date(data.startDate),
@@ -124,12 +128,17 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         daysOfWeek: data.daysOfWeek
       });
 
+      console.log('Disponibilidade:', isAvailable);
+
       if (!isAvailable) {
-        alert('Esta sala já está ocupada no período selecionado.');
+        console.log('=== HANDLEOCCUPY: Sala não disponível - bloqueando criação ===');
+        alert('Já existe uma ocupação em algum dos horários selecionados');
         return;
       }
 
-      await occupationService.create({
+      // SEGUNDO: Só criar se estiver disponível
+      console.log('=== HANDLEOCCUPY: Sala disponível - criando ocupação ===');
+      const result = await occupationService.create({
         roomId: classroom.id,
         teacher: data.teacher,
         subject: data.subject,
@@ -140,11 +149,19 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         daysOfWeek: data.daysOfWeek
       });
       
+      console.log('=== HANDLEOCCUPY: Sucesso ===');
+      console.log('Resultado:', result);
+      
       setIsOccupationFormOpen(false);
       const occupationsData = await occupationService.findByRoom(classroom.id);
       setOccupations(occupationsData);
       onRefresh();
     } catch (error: any) {
+      console.log('=== HANDLEOCCUPY: Erro capturado ===');
+      console.log('Tipo do erro:', typeof error);
+      console.log('Erro completo:', error);
+      console.log('Mensagem do erro:', error.message);
+      console.log('Stack do erro:', error.stack);
       alert(error.message);
     } finally {
       setIsLoading(false);
@@ -305,6 +322,8 @@ export function ClassroomCard({ classroom, onEdit, onDelete, onRefresh }: Classr
         open={isOccupationFormOpen}
         onClose={() => setIsOccupationFormOpen(false)}
         onSubmit={handleOccupy}
+        currentUser={currentUser}
+        selectedRoom={classroom.id}
         disciplines={disciplines}
       />
 
